@@ -1,4 +1,4 @@
-import { RegleObtention } from '../../domain/entities/regle-obtention.entity';
+import { IssuanceRule } from '../../domain/entities/issuance-rule.entity';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
 import type { CompetencyId } from '../../../../shared/competency-id';
 
@@ -11,7 +11,7 @@ function competencyScoreToPercent(score: number): number {
  * Builds {@link ValidationCompetence} instances from BC3 completion data for BC5 rule evaluation.
  */
 export function mapPathCompletionResultsToValidationCompetences(
-  rules: RegleObtention,
+  rules: IssuanceRule,
   results: ReadonlyArray<{ competencyId: string; score: number }>,
 ): ValidationCompetence[] {
   const ids = new Set<string>([

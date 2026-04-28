@@ -55,7 +55,7 @@ describe('Adaptive domain services', () => {
       expect(result).toBe(true);
       const activities = path.getActivities();
       expect(activities[0].type).toBe('REMEDIATION');
-      expect(activities[0].competenceIds).toEqual(['algorithmique-recursive']);
+      expect(activities[0].competencyIds).toEqual(['algorithmique-recursive']);
       expect(activities[1].id).toBe('activity-1');
       expect(activities[2].id).toBe('activity-2');
     });

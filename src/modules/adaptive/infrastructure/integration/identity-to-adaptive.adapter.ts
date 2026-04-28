@@ -32,13 +32,13 @@ export class IdentityToAdaptiveAdapter {
     let catalogActivities: Array<any> = [];
 
     if (programId) {
-      const programme = await this.catalogService.findProgrammeById(programId);
-      if (programme) {
-        // derive targetCertificationId from programme.objectifPrincipal if present
+      const program = await this.catalogService.findProgrammeById(programId);
+      if (program) {
+        // derive targetCertificationId from program.objectifPrincipal if present
         // gather courses/modules/lecons to build a flattened activity list
         const courses = await this.catalogService.findCoursByProgramme(programId);
-        for (const cours of courses || []) {
-          const modules = await this.catalogService.findModulesByCours(cours.id);
+        for (const course of courses || []) {
+          const modules = await this.catalogService.findModulesByCours(course.id);
           for (const mod of modules || []) {
             const compIds = (mod.competences || []).map((c: any) => c.id);
             mandatoryCompetencyIds.push(...compIds);
@@ -48,7 +48,7 @@ export class IdentityToAdaptiveAdapter {
             for (const l of lecons || []) {
               catalogActivities.push({
                 contentId: l.id,
-                competenceIds: (l.competences || []).map((c: any) => c.id),
+                competencyIds: (l.competences || []).map((c: any) => c.id),
                 estimatedHours: 1,
                 type: 'LESSON',
               });
@@ -62,7 +62,7 @@ export class IdentityToAdaptiveAdapter {
         for (const cid of mandatoryCompetencyIds) {
           catalogActivities.push({
             contentId: assessmentAggregateIdForCompetency(cid),
-            competenceIds: [cid],
+            competencyIds: [cid],
             estimatedHours: 0.5,
             type: 'ASSESSMENT',
           });
@@ -74,7 +74,7 @@ export class IdentityToAdaptiveAdapter {
       payload.learnerId,
       programId,
       payload.tenantId,
-      // targetCertificationId: use programme.objectifPrincipal when available
+      // targetCertificationId: use program.objectifPrincipal when available
       (await this.catalogService.findProgrammeById(programId))?.objectifPrincipal ?? programId,
       {
         weeklyHours,

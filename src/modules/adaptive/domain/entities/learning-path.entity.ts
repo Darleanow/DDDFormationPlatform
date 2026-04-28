@@ -57,17 +57,17 @@ export class LearningPath {
       new RemediationTriggeredEvent(
         this.id,
         this.learnerId,
-        remediation.competenceIds,
+        remediation.competencyIds,
       ),
     );
   }
 
-  skipActivitiesForCompetences(competenceIds: string[]): void {
+  skipActivitiesForCompetences(competencyIds: string[]): void {
     this.activities
       .filter(
         (a) =>
           a.isPending() &&
-          a.competenceIds.every((c) => competenceIds.includes(c)),
+          a.competencyIds.every((c) => competencyIds.includes(c)),
       )
       .forEach((a) => a.skip());
 
@@ -123,8 +123,8 @@ export class LearningPath {
     this.assessmentSuccessStreakAbove90 = 0;
   }
 
-  getLevelFor(competenceId: string): EstimatedLevel | undefined {
-    return this.levels.get(competenceId);
+  getLevelFor(competencyId: string): EstimatedLevel | undefined {
+    return this.levels.get(competencyId);
   }
 
   // ── Constraints ────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export class LearningPath {
     const covered = new Set(
       this.activities
         .filter((a) => a.isCompleted())
-        .flatMap((a) => a.competenceIds),
+        .flatMap((a) => a.competencyIds),
     );
     return this.constraint
       .getMandatoryCompetencyIds()

@@ -111,7 +111,7 @@ describe('EnrollmentService', () => {
       expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
     });
 
-    it('rejects enrollment when programme belongs to another tenant', async () => {
+    it('rejects enrollment when program belongs to another tenant', async () => {
       const alice = Learner.create({
         id: 'alice-id',
         tenantId: 'univ-lyon',

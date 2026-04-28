@@ -11,6 +11,9 @@ import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
 import { CertificativeAssessmentScoredEvent } from '../../domain/events/certificative-assessment-scored.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EstimatedLevelRepository } from '../../domain/repositories/estimated-level.repository';
+import { EstimatedLevel } from '../../domain/aggregates/estimated-level/estimated-level.aggregate';
+import { CompetencyId } from '../../../../shared/competency-id';
 
 export interface ProcessAssessmentAttemptInput {
   learnerId: string;
@@ -46,6 +49,7 @@ export class ProcessAssessmentAttemptUseCase {
     private readonly adaptiveEngine: AdaptiveEngineGateway,
     private readonly anomalyDetectionService: AnomalyDetectionService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly estimatedLevelRepository: EstimatedLevelRepository,
   ) {}
 
   async execute(
@@ -96,11 +100,30 @@ export class ProcessAssessmentAttemptUseCase {
       );
       this.eventEmitter.emit(event.constructor.name, event);
     } else if (!anomaly) {
-      // Formative -> report to adaptive
+      // Formative -> Update or create EstimatedLevel, then report to adaptive
+      let estimatedLevelAgg = await this.estimatedLevelRepository.findByLearnerAndCompetency(
+        attempt.getLearnerId(),
+        interpretationResult.competencyId as CompetencyId,
+      );
+
+      if (!estimatedLevelAgg) {
+        estimatedLevelAgg = new EstimatedLevel(
+          attempt.getLearnerId(),
+          interpretationResult.competencyId as CompetencyId,
+          input.tenantId,
+          0.0 // Default baseline or fetch from somewhere
+        );
+      }
+
+      // Update the smooth level and save
+      estimatedLevelAgg.updateLevel(interpretationResult.interpretation.interpretedScore);
+      await this.estimatedLevelRepository.save(estimatedLevelAgg);
+
+      // Report smoothed value to adaptive
       await this.adaptiveEngine.submitScore({
         learnerId: attempt.getLearnerId(),
         competencyId: interpretationResult.competencyId,
-        estimatedLevel: interpretationResult.interpretation.interpretedScore,
+        estimatedLevel: estimatedLevelAgg.currentLevelValue,
         tenantId: input.tenantId,
       });
     }

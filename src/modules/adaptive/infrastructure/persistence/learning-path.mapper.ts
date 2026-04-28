@@ -25,7 +25,7 @@ export class LearningPathMapper {
             a.id,
             a.contentId,
             a.type as any,
-            a.competenceIds,
+            a.competencyIds,
             a.estimatedHours,
             a.order,
             ActivityStatus.fromString(a.status),
@@ -58,7 +58,7 @@ export class LearningPathMapper {
       activityEntity.id = activity.id;
       activityEntity.contentId = activity.contentId;
       activityEntity.type = activity.type;
-      activityEntity.competenceIds = activity.competenceIds;
+      activityEntity.competencyIds = activity.competencyIds;
       activityEntity.estimatedHours = activity.estimatedHours;
       activityEntity.order = activity.order;
       activityEntity.status = activity.getStatus().toString();

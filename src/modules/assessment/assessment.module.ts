@@ -38,6 +38,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EventEmitterAdaptiveEngineGateway } from './infrastructure/integration/event-emitter-adaptive-engine.gateway';
 import { CatalogModule } from '../catalog/catalog.module';
 import { CompetencyAssessmentsBootstrap } from './infrastructure/bootstrap/competency-assessments-bootstrap.service';
+import { ESTIMATED_LEVEL_REPOSITORY, EstimatedLevelRepository } from './domain/repositories/estimated-level.repository';
+import { InMemoryEstimatedLevelRepository } from './infrastructure/persistence/in-memory/in-memory-estimated-level.repository';
 
 @Module({
   imports: [CatalogModule],
@@ -121,6 +123,10 @@ import { CompetencyAssessmentsBootstrap } from './infrastructure/bootstrap/compe
       inject: [ASSESSMENT_REPOSITORY, AssessmentResultInterpreter],
     },
     {
+      provide: ESTIMATED_LEVEL_REPOSITORY,
+      useClass: InMemoryEstimatedLevelRepository,
+    },
+    {
       provide: ProcessAssessmentAttemptUseCase,
       useFactory: (
         interpretResult: InterpretAssessmentResultUseCase,
@@ -129,6 +135,7 @@ import { CompetencyAssessmentsBootstrap } from './infrastructure/bootstrap/compe
         adaptiveEngine: AdaptiveEngineGateway,
         anomalyDetectionService: AnomalyDetectionService,
         eventEmitter: EventEmitter2,
+        estimatedLevelRepository: EstimatedLevelRepository,
       ) =>
         new ProcessAssessmentAttemptUseCase(
           interpretResult,
@@ -137,6 +144,7 @@ import { CompetencyAssessmentsBootstrap } from './infrastructure/bootstrap/compe
           adaptiveEngine,
           anomalyDetectionService,
           eventEmitter,
+          estimatedLevelRepository,
         ),
       inject: [
         InterpretAssessmentResultUseCase,
@@ -145,6 +153,7 @@ import { CompetencyAssessmentsBootstrap } from './infrastructure/bootstrap/compe
         ADAPTIVE_ENGINE_GATEWAY,
         AnomalyDetectionService,
         EventEmitter2,
+        ESTIMATED_LEVEL_REPOSITORY,
       ],
     },
   ],

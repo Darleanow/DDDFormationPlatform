@@ -8,13 +8,13 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Cours } from './cours.entity';
+import { Course } from './course.entity';
 import { Competence } from './competence.entity';
-import { Lecon } from './lecon.entity';
-import { Exercice } from './exercice.entity';
+import { Lesson } from './lesson.entity';
+import { Exercise } from './exercise.entity';
 
 /**
- * Module — Subdivision d'un cours couvrant une notion ou une compétence précise.
+ * Module — Subdivision d'un course couvrant une notion ou une compétence précise.
  * Peut être ordonnancé par le moteur adaptatif.
  *
  * Les prérequis forment un graphe orienté acyclique (DAG) :
@@ -31,13 +31,13 @@ export class Module {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  /** Position du module au sein du cours. */
+  /** Position du module au sein du course. */
   @Column({ type: 'int' })
   ordre: number;
 
   @Exclude()
-  @ManyToOne(() => Cours, (cours) => cours.modules, { onDelete: 'CASCADE' })
-  cours: Cours;
+  @ManyToOne(() => Course, (course) => course.modules, { onDelete: 'CASCADE' })
+  course: Course;
 
   @Column()
   coursId: string;
@@ -60,6 +60,6 @@ export class Module {
   })
   prerequis: Module[];
 
-  @OneToMany(() => Lecon, (lecon) => lecon.module, { cascade: true })
-  lecons: Lecon[];
+  @OneToMany(() => Lesson, (lesson) => lesson.module, { cascade: true })
+  lecons: Lesson[];
 }

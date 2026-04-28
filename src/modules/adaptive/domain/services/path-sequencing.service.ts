@@ -11,7 +11,7 @@ export class PathSequencingService {
     path: LearningPath,
     catalogActivities: Array<{
       contentId: string;
-      competenceIds: string[];
+      competencyIds: string[];
       estimatedHours: number;
       type: 'LESSON' | 'EXERCISE' | 'ASSESSMENT';
     }>,
@@ -21,7 +21,7 @@ export class PathSequencingService {
         randomUUID(),
         item.contentId,
         item.type,
-        item.competenceIds,
+        item.competencyIds,
         item.estimatedHours,
         index,
       );

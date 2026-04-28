@@ -1,13 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Cours } from './cours.entity';
+import { Course } from './course.entity';
 
 /**
  * Programme — Aggregate root du catalogue.
  * Ensemble cohérent de formations associé à un objectif d'apprentissage principal
  * (certification, compétence cible).
  */
-@Entity('programme')
-export class Programme {
+@Entity('program')
+export class Program {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -20,10 +20,10 @@ export class Programme {
   @Column()
   objectifPrincipal: string;
 
-  /** Isolation multi-tenant : chaque programme appartient à un tenant. */
+  /** Isolation multi-tenant : chaque program appartient à un tenant. */
   @Column()
   tenantId: string;
 
-  @OneToMany(() => Cours, (cours) => cours.programme, { cascade: true })
-  cours: Cours[];
+  @OneToMany(() => Course, (course) => course.program, { cascade: true })
+  course: Course[];
 }

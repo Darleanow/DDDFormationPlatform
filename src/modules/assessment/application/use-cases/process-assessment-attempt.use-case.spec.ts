@@ -53,6 +53,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
       adaptiveGateway,
       anomalyDetectionService,
       eventEmitter,
+      { findByLearnerAndCompetency: jest.fn(), save: jest.fn() } as any,
     );
 
     const result = await useCase.execute({
@@ -104,6 +105,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
       adaptiveGateway,
       anomalyDetectionService,
       eventEmitter,
+      { findByLearnerAndCompetency: jest.fn(), save: jest.fn() } as any,
     );
 
     const result = await useCase.execute({

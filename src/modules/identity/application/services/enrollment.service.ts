@@ -56,11 +56,11 @@ export class EnrollmentService {
       throw new ForbiddenException('Learner cannot enroll on behalf of another tenant');
     }
 
-    const programme = await this.catalogQuery.findProgrammeById(dto.programId);
-    if (!programme) {
+    const program = await this.catalogQuery.findProgrammeById(dto.programId);
+    if (!program) {
       throw new NotFoundException('Programme not found');
     }
-    if (programme.tenantId !== learner.tenantId) {
+    if (program.tenantId !== learner.tenantId) {
       throw new ForbiddenException('Programme not accessible to this tenant');
     }
 

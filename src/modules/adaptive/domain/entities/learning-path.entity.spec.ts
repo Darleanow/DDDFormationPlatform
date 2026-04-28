@@ -19,10 +19,10 @@ function buildPath(mandatoryIds: string[] = ['c1', 'c2']): LearningPath {
 function addAndCompleteActivity(
   path: LearningPath,
   id: string,
-  competenceIds: string[],
+  competencyIds: string[],
   order: number,
 ): Activity {
-  const activity = new Activity(id, `content-${id}`, 'ASSESSMENT', competenceIds, 1, order);
+  const activity = new Activity(id, `content-${id}`, 'ASSESSMENT', competencyIds, 1, order);
   path.addActivity(activity);
   activity.complete();
   return activity;

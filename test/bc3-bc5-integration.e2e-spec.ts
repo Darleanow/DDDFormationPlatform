@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { CertificationModule } from '../src/modules/certification/certification.module';
 import { ICertificationRepository } from '../src/modules/certification/domain/repositories/certification.repository.interface';
-import { IDelivranceRepository } from '../src/modules/certification/domain/repositories/delivrance.repository.interface';
+import { IIssuanceRepository } from '../src/modules/certification/domain/repositories/issuance.repository.interface';
 import { Certification } from '../src/modules/certification/domain/entities/certification.entity';
-import { RegleObtention } from '../src/modules/certification/domain/entities/regle-obtention.entity';
+import { IssuanceRule } from '../src/modules/certification/domain/entities/issuance-rule.entity';
 import { CompetencyId } from '../src/shared/competency-id';
 import { LearningPathCompletedEvent } from '../src/modules/adaptive/domain/events/learning-path-completed.event';
 import { BC_INPROCESS_EVENT } from '../src/shared/bc-integration/in-process-events';
@@ -18,8 +18,8 @@ class AccessibleInMemoryCertRepo {
 }
 class AccessibleInMemoryDelivRepo {
   public items: any[] = [];
-  async save(delivrance: any): Promise<void> {
-    this.items.push(delivrance);
+  async save(issuance: any): Promise<void> {
+    this.items.push(issuance);
   }
 }
 
@@ -41,7 +41,7 @@ describe('Integration between BC3 (Adaptive) and BC5 (Certification)', () => {
     })
       .overrideProvider('ICertificationRepository')
       .useValue(certRepo)
-      .overrideProvider('IDelivranceRepository')
+      .overrideProvider('IIssuanceRepository')
       .useValue(delivRepo)
       .compile();
 
@@ -54,7 +54,7 @@ describe('Integration between BC3 (Adaptive) and BC5 (Certification)', () => {
   it('devrait délivrer une certification quand BC3 émet un évènement de fin de parcours', async () => {
     // 1. Mise en place : on crée une certification valide dans BC5
     const certificationId = 'CERTIF-NESTJS';
-    const regle = new RegleObtention(
+    const regle = new IssuanceRule(
     70,
     new Set(['comp-1' as CompetencyId]),
     new Set(['comp-1' as CompetencyId]),

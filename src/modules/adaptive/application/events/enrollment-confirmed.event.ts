@@ -12,7 +12,7 @@ export class EnrollmentConfirmedEvent {
     },
     public readonly catalogActivities: Array<{
       contentId: string;
-      competenceIds: string[];
+      competencyIds: string[];
       estimatedHours: number;
       type: 'LESSON' | 'EXERCISE' | 'ASSESSMENT';
     }>,

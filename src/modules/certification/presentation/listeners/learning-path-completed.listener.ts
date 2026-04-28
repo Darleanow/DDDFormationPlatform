@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { VerifierEligibiliteEtDelivrerHandler } from '../../application/commands/verifier-eligibilite-et-delivrer.handler';
-import { VerifierEligibiliteEtDelivrerCommand } from '../../application/commands/verifier-eligibilite-et-delivrer.command';
+import { VerifyEligibilityAndIssueHandler } from '../../application/commands/verify-eligibility-and-issue.handler';
+import { VerifyEligibilityAndIssueCommand } from '../../application/commands/verify-eligibility-and-issue.command';
 import type { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
 import {
   mapPathCompletionResultsToValidationCompetences,
@@ -26,7 +26,7 @@ export interface LearningPathCompletedIntegrationEvent {
 @Injectable()
 export class LearningPathCompletedListener {
   constructor(
-    private readonly handler: VerifierEligibiliteEtDelivrerHandler,
+    private readonly handler: VerifyEligibilityAndIssueHandler,
     @Inject('ICertificationRepository')
     private readonly certificationRepo: ICertificationRepository,
   ) {}
@@ -49,7 +49,7 @@ export class LearningPathCompletedListener {
       certification.regles.scoreSeuil,
     );
 
-    const command = new VerifierEligibiliteEtDelivrerCommand(
+    const command = new VerifyEligibilityAndIssueCommand(
       payload.learnerId,
       payload.targetCertificationId,
       normalizedGlobal,

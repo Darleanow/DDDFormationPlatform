@@ -8,15 +8,15 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Module } from './module.entity';
-import { Lecon } from './lecon.entity';
+import { Lesson } from './lesson.entity';
 import { Competence } from './competence.entity';
 
 /**
- * Exercice — Activité pratique permettant de mobiliser
+ * Exercise — Activité pratique permettant de mobiliser
  * les compétences d'une leçon ou d'un module.
  */
-@Entity('exercice')
-export class Exercice {
+@Entity('exercise')
+export class Exercise {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -29,7 +29,7 @@ export class Exercice {
   @Column({ type: 'text', nullable: true })
   enonce: string | null;
 
-  /** Position de l'exercice au sein de la leçon. */
+  /** Position de l'exercise au sein de la leçon. */
   @Column({ type: 'int' })
   ordre: number;
 
@@ -40,15 +40,15 @@ export class Exercice {
   weight: number;
 
   @Exclude()
-  @ManyToOne(() => Lecon, (lecon) => lecon.exercices, {
+  @ManyToOne(() => Lesson, (lesson) => lesson.exercises, {
     onDelete: 'CASCADE',
   })
-  lecon: Lecon;
+  lesson: Lesson;
 
   @Column()
   leconId: string;
 
-  /** Compétences mobilisées par cet exercice. */
+  /** Compétences mobilisées par cet exercise. */
   @ManyToMany(() => Competence, { eager: true })
   @JoinTable({ name: 'exercice_competence' })
   competences: Competence[];

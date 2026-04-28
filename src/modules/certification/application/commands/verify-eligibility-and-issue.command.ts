@@ -1,6 +1,6 @@
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
 
-export class VerifierEligibiliteEtDelivrerCommand {
+export class VerifyEligibilityAndIssueCommand {
   constructor(
     public readonly learnerId: string,
     public readonly certificationId: string,

@@ -1,4 +1,4 @@
-import { RegleObtention } from '../entities/regle-obtention.entity';
+import { IssuanceRule } from '../entities/issuance-rule.entity';
 import { ValidationCompetence } from '../value-objects/validation-competence.value-object';
 import { ScoreGlobalInsuffisantException } from '../exceptions/score-global-insuffisant.exception';
 import { CompetenceCritiqueEnEchecException } from '../exceptions/competence-critique-en-echec.exception';
@@ -19,7 +19,7 @@ export class RuleEngineService {
    * @returns true si éligible, sinon lève une exception de domaine.
    */
   evaluer(
-    regles: RegleObtention,
+    regles: IssuanceRule,
     scoreApprenant: number,
     validationsApprenant: ValidationCompetence[],
   ): boolean {

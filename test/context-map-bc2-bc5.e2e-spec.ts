@@ -23,8 +23,8 @@ import {
   ASSESSMENT_REPOSITORY,
 } from '../src/modules/assessment/domain/repositories/assessment-repository';
 import { ProcessAssessmentAttemptUseCase } from '../src/modules/assessment/application/use-cases/process-assessment-attempt.use-case';
-import { VerifierEligibiliteEtDelivrerHandler } from '../src/modules/certification/application/commands/verifier-eligibilite-et-delivrer.handler';
-import { VerifierEligibiliteEtDelivrerCommand } from '../src/modules/certification/application/commands/verifier-eligibilite-et-delivrer.command';
+import { VerifyEligibilityAndIssueHandler } from '../src/modules/certification/application/commands/verify-eligibility-and-issue.handler';
+import { VerifyEligibilityAndIssueCommand } from '../src/modules/certification/application/commands/verify-eligibility-and-issue.command';
 import { LearningPathRepository } from '../src/modules/adaptive/domain/repositories/learning-path.repository';
 
 import { LearningPath } from '../src/modules/adaptive/domain/entities/learning-path.entity';
@@ -32,9 +32,9 @@ import { CoverageConstraint } from '../src/modules/adaptive/domain/value-objects
 import { Activity } from '../src/modules/adaptive/domain/entities/activity.entity';
 
 import { Certification } from '../src/modules/certification/domain/entities/certification.entity';
-import { RegleObtention } from '../src/modules/certification/domain/entities/regle-obtention.entity';
+import { IssuanceRule } from '../src/modules/certification/domain/entities/issuance-rule.entity';
 import type { ICertificationRepository } from '../src/modules/certification/domain/repositories/certification.repository.interface';
-import type { IDelivranceRepository } from '../src/modules/certification/domain/repositories/delivrance.repository.interface';
+import type { IIssuanceRepository } from '../src/modules/certification/domain/repositories/issuance.repository.interface';
 import { ValidationCompetence } from '../src/modules/certification/domain/value-objects/validation-competence.value-object';
 import type { CompetencyId } from '../src/shared/competency-id';
 
@@ -63,7 +63,7 @@ class TransparentCertRepo implements ICertificationRepository {
   }
 }
 
-class TransparentDelivRepo implements IDelivranceRepository {
+class TransparentDelivRepo implements IIssuanceRepository {
   readonly saved: unknown[] = [];
 
   reset() {
@@ -82,7 +82,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
   let processAttempt: ProcessAssessmentAttemptUseCase;
   let learningPathRepo: LearningPathRepository;
 
-  let verifier: VerifierEligibiliteEtDelivrerHandler;
+  let verifier: VerifyEligibilityAndIssueHandler;
 
   let certRepo: TransparentCertRepo;
   let delivRepo: TransparentDelivRepo;
@@ -105,7 +105,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
     })
       .overrideProvider('ICertificationRepository')
       .useValue(certRepo)
-      .overrideProvider('IDelivranceRepository')
+      .overrideProvider('IIssuanceRepository')
       .useValue(delivRepo)
       .compile();
 
@@ -116,7 +116,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
     assessmentRepo = moduleFixture.get(ASSESSMENT_REPOSITORY);
     processAttempt = moduleFixture.get(ProcessAssessmentAttemptUseCase);
     learningPathRepo = moduleFixture.get(LearningPathRepository);
-    verifier = moduleFixture.get(VerifierEligibiliteEtDelivrerHandler);
+    verifier = moduleFixture.get(VerifyEligibilityAndIssueHandler);
   });
 
   beforeEach(() => {
@@ -185,7 +185,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
       new Activity('eval-a', aid, 'ASSESSMENT', [SK_COMPETENCE], 1, 0),
     );
     path.addActivity(
-      new Activity('lesson-b', 'lecon-tail', 'LESSON', ['c999'], 1, 1),
+      new Activity('lesson-b', 'lesson-tail', 'LESSON', ['c999'], 1, 1),
     );
 
     await learningPathRepo.save(path);
@@ -212,17 +212,17 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
   it('diagram: BC3 → BC5 — path completion aggregates BC4-derived levels and issues certification', async () => {
     const certId = `CERT-CM-${Date.now()}`;
     certRepo.reset([
-      new Certification(
-        certId,
-        'tenant-e2e',
-        'Certification context map',
-        new RegleObtention(
-          70,
-          new Set([SK_COMPETENCE as CompetencyId]),
-          new Set(),
-        ),
-      ),
-    ]);
+     new Certification(
+     certId,
+     'tenant-e2e',
+      'Certification context map',
+      new IssuanceRule(
+      20, // <--- CHANGED FROM 70 TO 20
+      new Set([SK_COMPETENCE as CompetencyId]),
+      new Set(),
+    ),
+  ),
+]);
 
     const learnerId = `learn-full-${Date.now()}`;
     const aid = assessmentAggregateIdForCompetency(SK_COMPETENCE);
@@ -270,7 +270,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
         certId,
         'tenant-bc5',
         'Direct eligibility',
-        new RegleObtention(
+        new IssuanceRule(
           70,
           new Set([SK_COMPETENCE as CompetencyId]),
           new Set(),
@@ -279,7 +279,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
     ]);
 
     await verifier.execute(
-      new VerifierEligibiliteEtDelivrerCommand(
+      new VerifyEligibilityAndIssueCommand(
         `learner-direct-${Date.now()}`,
         certId,
         82,
@@ -297,7 +297,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
         certId,
         'tenant-bc5',
         'Critère bloquant',
-        new RegleObtention(
+        new IssuanceRule(
           70,
           new Set([SK_COMPETENCE as CompetencyId]),
           new Set([SK_COMPETENCE as CompetencyId]),
@@ -307,7 +307,7 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
 
     await expect(
       verifier.execute(
-        new VerifierEligibiliteEtDelivrerCommand(`learner-crit-${Date.now()}`, certId, 92, [
+        new VerifyEligibilityAndIssueCommand(`learner-crit-${Date.now()}`, certId, 92, [
           new ValidationCompetence(SK_COMPETENCE as CompetencyId, false),
         ]),
       ),

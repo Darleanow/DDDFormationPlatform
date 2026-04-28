@@ -1,7 +1,7 @@
 /**
  * Entité représentant l'acte formel et irréversible de délivrance d'une certification.
  */
-export class Delivrance {
+export class Issuance {
   constructor(
     public readonly id: string,
     public readonly certificationId: string,

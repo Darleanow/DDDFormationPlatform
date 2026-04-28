@@ -33,8 +33,8 @@ export class ConstraintSolverService {
 
     // Priority for pending activities covering must-have skills
     pending.sort((a, b) => {
-      const aIsMandatory = a.competenceIds.some((c) => uncovered.has(c));
-      const bIsMandatory = b.competenceIds.some((c) => uncovered.has(c));
+      const aIsMandatory = a.competencyIds.some((c) => uncovered.has(c));
+      const bIsMandatory = b.competencyIds.some((c) => uncovered.has(c));
       if (aIsMandatory && !bIsMandatory) return -1;
       if (!aIsMandatory && bIsMandatory) return 1;
       return a.order - b.order;

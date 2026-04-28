@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { RuleEngineService } from './domain/services/rule-engine.service';
 import { EligibilityCheckService } from './domain/services/eligibility-check.service';
 import { CertificateIssuanceService } from './domain/services/certificate-issuance.service';
-import { VerifierEligibiliteEtDelivrerHandler } from './application/commands/verifier-eligibilite-et-delivrer.handler';
+import { VerifyEligibilityAndIssueHandler } from './application/commands/verify-eligibility-and-issue.handler';
 import { InMemoryCertificationRepository } from './infrastructure/repositories/in-memory-certification.repository';
-import { InMemoryDelivranceRepository } from './infrastructure/repositories/in-memory-delivrance.repository';
-import { InMemoryTentativeCertificationRepository } from './infrastructure/repositories/in-memory-tentative.repository';
+import { InMemoryIssuanceRepository } from './infrastructure/repositories/in-memory-issuance.repository';
+import { InMemoryAttemptRepository } from './infrastructure/repositories/in-memory-attempt.repository';
 import { LearningPathCompletedListener } from './presentation/listeners/learning-path-completed.listener';
 import { CertificativeAssessmentScoredListener } from './presentation/listeners/certificative-assessment-scored.listener';
 
@@ -17,7 +17,7 @@ import { CertificativeAssessmentScoredListener } from './presentation/listeners/
     CertificateIssuanceService,
 
     // 2. Cas d'Usage (Application)
-    VerifierEligibiliteEtDelivrerHandler,
+    VerifyEligibilityAndIssueHandler,
 
     // 3. Écouteurs d'Événements externes (Presentation)
     LearningPathCompletedListener,
@@ -29,12 +29,12 @@ import { CertificativeAssessmentScoredListener } from './presentation/listeners/
       useClass: InMemoryCertificationRepository,
     },
     {
-      provide: 'IDelivranceRepository',
-      useClass: InMemoryDelivranceRepository,
+      provide: 'IIssuanceRepository',
+      useClass: InMemoryIssuanceRepository,
     },
     {
-      provide: 'ITentativeCertificationRepository',
-      useClass: InMemoryTentativeCertificationRepository,
+      provide: 'ICertificationAttemptRepository',
+      useClass: InMemoryAttemptRepository,
     },
   ],
 })

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import { Certification } from '../entities/certification.entity';
-import { Delivrance } from '../entities/delivrance.entity';
+import { Issuance } from '../entities/issuance.entity';
 import { CertificationDelivreeEvent } from '../events/certification-delivree.event';
 
 /**
@@ -19,13 +19,13 @@ export class CertificateIssuanceService {
   delivrer(
     certification: Certification,
     learnerId: string,
-  ): { delivrance: Delivrance; event: CertificationDelivreeEvent } {
+  ): { issuance: Issuance; event: CertificationDelivreeEvent } {
     // L'acte de délivrance doit être finalisé avec un UUID et une date (timestamp exact)
     const newDelivranceId = crypto.randomUUID();
     const dateDelivrance = new Date();
 
     // 1 - Création de l'Entité de Base de Données / Domaine (La trace)
-    const delivrance = new Delivrance(
+    const issuance = new Issuance(
       newDelivranceId,
       certification.id,
       learnerId,
@@ -40,6 +40,6 @@ export class CertificateIssuanceService {
       dateDelivrance,
     );
 
-    return { delivrance, event };
+    return { issuance, event };
   }
 }

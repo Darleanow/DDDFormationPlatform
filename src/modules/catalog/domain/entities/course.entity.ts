@@ -6,15 +6,15 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Programme } from './programme.entity';
+import { Program } from './program.entity';
 import { Module } from './module.entity';
 
 /**
- * Cours — Unité pédagogique de premier niveau, regroupant des modules
+ * Course — Unité pédagogique de premier niveau, regroupant des modules
  * autour d'un thème disciplinaire.
  */
-@Entity('cours')
-export class Cours {
+@Entity('course')
+export class Course {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -24,19 +24,19 @@ export class Cours {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  /** Position du cours au sein du programme. */
+  /** Position du course au sein du program. */
   @Column({ type: 'int' })
   ordre: number;
 
   @Exclude()
-  @ManyToOne(() => Programme, (programme) => programme.cours, {
+  @ManyToOne(() => Program, (program) => program.course, {
     onDelete: 'CASCADE',
   })
-  programme: Programme;
+  program: Program;
 
   @Column()
   programmeId: string;
 
-  @OneToMany(() => Module, (module) => module.cours, { cascade: true })
+  @OneToMany(() => Module, (module) => module.course, { cascade: true })
   modules: Module[];
 }

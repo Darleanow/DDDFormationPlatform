@@ -1,21 +1,21 @@
-import { VerifierEligibiliteEtDelivrerHandler } from './verifier-eligibilite-et-delivrer.handler';
-import { VerifierEligibiliteEtDelivrerCommand } from './verifier-eligibilite-et-delivrer.command';
+import { VerifyEligibilityAndIssueHandler } from './verify-eligibility-and-issue.handler';
+import { VerifyEligibilityAndIssueCommand } from './verify-eligibility-and-issue.command';
 import { EligibilityCheckService } from '../../domain/services/eligibility-check.service';
 import { CertificateIssuanceService } from '../../domain/services/certificate-issuance.service';
 import { RuleEngineService } from '../../domain/services/rule-engine.service';
 import { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
-import { IDelivranceRepository } from '../../domain/repositories/delivrance.repository.interface';
+import { IIssuanceRepository } from '../../domain/repositories/issuance.repository.interface';
 import { Certification } from '../../domain/entities/certification.entity';
-import { RegleObtention } from '../../domain/entities/regle-obtention.entity';
+import { IssuanceRule } from '../../domain/entities/issuance-rule.entity';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
 import { CompetencyId } from '../../../../shared/competency-id';
 import { ScoreGlobalInsuffisantException } from '../../domain/exceptions/score-global-insuffisant.exception';
 import { CertificationDelivreeEvent } from '../../domain/events/certification-delivree.event';
 
-describe('VerifierEligibiliteEtDelivrerHandler', () => {
-  let handler: VerifierEligibiliteEtDelivrerHandler;
+describe('VerifyEligibilityAndIssueHandler', () => {
+  let handler: VerifyEligibilityAndIssueHandler;
   let mockCertifRepo: jest.Mocked<ICertificationRepository>;
-  let mockDelivranceRepo: jest.Mocked<IDelivranceRepository>;
+  let mockDelivranceRepo: jest.Mocked<IIssuanceRepository>;
   let eventEmitter: { emit: jest.Mock };
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
     const eligibilityCheck = new EligibilityCheckService(ruleEngine);
     const issuanceService = new CertificateIssuanceService();
 
-    handler = new VerifierEligibiliteEtDelivrerHandler(
+    handler = new VerifyEligibilityAndIssueHandler(
       mockCertifRepo,
       mockDelivranceRepo,
       eligibilityCheck,
@@ -44,7 +44,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
 
   it("devrait délivrer le certificat et le sauvegarder si l'apprenant est éligible", async () => {
     // GIVEN
-    const regles = new RegleObtention(70, new Set([]), new Set([]));
+    const regles = new IssuanceRule(70, new Set([]), new Set([]));
     const certification = new Certification(
       'cert-123',
       'tenant-1',
@@ -54,7 +54,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
 
     mockCertifRepo.findById.mockResolvedValue(certification);
 
-    const command = new VerifierEligibiliteEtDelivrerCommand(
+    const command = new VerifyEligibilityAndIssueCommand(
       'learner-1',
       'cert-123',
       80, // Score Ok
@@ -76,7 +76,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
 
   it('ne devrait rien sauvegarder et lever une exception si le score est insuffisant', async () => {
     // GIVEN
-    const regles = new RegleObtention(70, new Set([]), new Set([]));
+    const regles = new IssuanceRule(70, new Set([]), new Set([]));
     const certification = new Certification(
       'cert-456',
       'tenant-1',
@@ -86,7 +86,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
 
     mockCertifRepo.findById.mockResolvedValue(certification);
 
-    const command = new VerifierEligibiliteEtDelivrerCommand(
+    const command = new VerifyEligibilityAndIssueCommand(
       'learner-1',
       'cert-456',
       50, // Score KO (50 < 70)
@@ -103,11 +103,11 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
     expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
   });
 
-  it('devrait lever une erreur systémique si la certification est introuvable', async () => {
+  it('devrait lever une error systémique si la certification est introuvable', async () => {
     // GIVEN
     mockCertifRepo.findById.mockResolvedValue(null); // Certification inexistante
 
-    const command = new VerifierEligibiliteEtDelivrerCommand(
+    const command = new VerifyEligibilityAndIssueCommand(
       'learner-1',
       'unknown-cert',
       90,

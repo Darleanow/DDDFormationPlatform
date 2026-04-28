@@ -19,13 +19,13 @@ describe('PathSequencingService', () => {
     service.buildInitialSequence(path, [
       {
         contentId: 'content-1',
-        competenceIds: ['c1'],
+        competencyIds: ['c1'],
         estimatedHours: 2,
         type: 'LESSON',
       },
       {
         contentId: 'content-2',
-        competenceIds: ['c2'],
+        competencyIds: ['c2'],
         estimatedHours: 1,
         type: 'EXERCISE',
       },

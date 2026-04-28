@@ -73,7 +73,7 @@ describe('Integration between BC4 (Assessment), BC3 (Adaptive) and BC2 (Catalog)
     const activities = updatedPath!.getActivities();
 
     // The path should now have a REMEDIATION activity
-    const hasRemediation = activities.some(a => a.type === 'REMEDIATION' && a.competenceIds.includes(competenceCible));
+    const hasRemediation = activities.some(a => a.type === 'REMEDIATION' && a.competencyIds.includes(competenceCible));
 
     expect(hasRemediation).toBe(true);
 

@@ -10,15 +10,15 @@ import {
 import { Exclude } from 'class-transformer';
 import { Module } from './module.entity';
 import { Competence } from './competence.entity';
-import { Exercice } from './exercice.entity';
-import { TypeLecon } from '../enums/type-lecon.enum';
+import { Exercise } from './exercise.entity';
+import { TypeLesson } from '../enums/type-lesson.enum';
 
 /**
  * Leçon — Unité de contenu atomique au sein d'un module :
  * texte, vidéo, simulation ou support interactif.
  */
-@Entity('lecon')
-export class Lecon {
+@Entity('lesson')
+export class Lesson {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -29,7 +29,7 @@ export class Lecon {
   contenu: string | null;
 
   @Column({ type: 'varchar' })
-  type: TypeLecon;
+  type: TypeLesson;
 
   /** Position de la leçon au sein du module. */
   @Column({ type: 'int' })
@@ -46,6 +46,6 @@ export class Lecon {
   @JoinTable({ name: 'lecon_competence' })
   competences: Competence[];
 
-  @OneToMany(() => Exercice, (exercice) => exercice.lecon, { cascade: true })
-  exercices: Exercice[];
+  @OneToMany(() => Exercise, (exercise) => exercise.lesson, { cascade: true })
+  exercises: Exercise[];
 }

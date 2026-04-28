@@ -1,8 +1,8 @@
-import { VerifierEligibiliteEtDelivrerCommand } from './verifier-eligibilite-et-delivrer.command';
+import { VerifyEligibilityAndIssueCommand } from './verify-eligibility-and-issue.command';
 import { EligibilityCheckService } from '../../domain/services/eligibility-check.service';
 import { CertificateIssuanceService } from '../../domain/services/certificate-issuance.service';
 import type { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
-import type { IDelivranceRepository } from '../../domain/repositories/delivrance.repository.interface';
+import type { IIssuanceRepository } from '../../domain/repositories/issuance.repository.interface';
 import { Injectable, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CertificationDelivreeEvent } from '../../domain/events/certification-delivree.event';
@@ -13,18 +13,18 @@ import { CertificationDelivreeEvent } from '../../domain/events/certification-de
  * C'est le point d'entrée de notre logique métier après la réception d'une requête HTTP ou d'un évènement Kafka/RabbitMQ.
  */
 @Injectable()
-export class VerifierEligibiliteEtDelivrerHandler {
+export class VerifyEligibilityAndIssueHandler {
   constructor(
     @Inject('ICertificationRepository')
     private readonly certificationRepo: ICertificationRepository,
-    @Inject('IDelivranceRepository')
-    private readonly delivranceRepo: IDelivranceRepository,
+    @Inject('IIssuanceRepository')
+    private readonly issuanceRepo: IIssuanceRepository,
     private readonly eligibilityCheckService: EligibilityCheckService,
     private readonly issuanceService: CertificateIssuanceService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(command: VerifierEligibiliteEtDelivrerCommand): Promise<void> {
+  async execute(command: VerifyEligibilityAndIssueCommand): Promise<void> {
     // 1. Récupération de l'Aggregate Root (Certification avec ses Règles) depuis la Base de Données
     const certification = await this.certificationRepo.findById(
       command.certificationId,
@@ -51,7 +51,7 @@ export class VerifierEligibiliteEtDelivrerHandler {
     );
 
     // 4. Persistence du nouveau certificat (Adaptateur de base de données)
-    await this.delivranceRepo.save(result.delivrance);
+    await this.issuanceRepo.save(result.issuance);
 
     // 5. Publication de l'événement aux autres bounded contexts
     await this.eventEmitter.emitAsync(

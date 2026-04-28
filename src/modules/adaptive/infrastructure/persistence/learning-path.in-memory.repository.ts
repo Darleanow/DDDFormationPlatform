@@ -45,7 +45,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
     const learnerIndex = new Map<string, string>();
     (this as any)._learnerIndex = learnerIndex;
 
-    // ── Scénario 1 : Parcours standard en cours (remédiation déjà insérée) ───
+    // ── Scénario 1 : Parcours standard en course (remédiation déjà insérée) ───
     const path1 = LearningPath.reconstitute({
       id: 'path-alice-001',
       learnerId: 'learner-alice',
@@ -182,7 +182,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       ],
       levels: [
         EstimatedLevel.from('structures-donnees', 0.93), // maîtrise → eligible accélération
-        EstimatedLevel.from('complexite-algorithmique', 0.55), // en cours
+        EstimatedLevel.from('complexite-algorithmique', 0.55), // en course
       ],
     });
     this.store.set(path2.id, path2);

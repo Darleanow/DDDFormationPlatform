@@ -1,22 +1,22 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Programme } from '../domain/entities/programme.entity';
-import { Cours } from '../domain/entities/cours.entity';
+import { Program } from '../domain/entities/program.entity';
+import { Course } from '../domain/entities/course.entity';
 import { Module } from '../domain/entities/module.entity';
-import { Lecon } from '../domain/entities/lecon.entity';
-import { Exercice } from '../domain/entities/exercice.entity';
+import { Lesson } from '../domain/entities/lesson.entity';
+import { Exercise } from '../domain/entities/exercise.entity';
 import { Competence } from '../domain/entities/competence.entity';
-import { TypeLecon } from '../domain/enums/type-lecon.enum';
+import { TypeLesson } from '../domain/enums/type-lesson.enum';
 
 @Injectable()
 export class CsvCatalogService implements OnModuleInit {
     private competences: Competence[] = [];
-    private programmes: Programme[] = [];
-    private cours: Cours[] = [];
+    private programmes: Program[] = [];
+    private course: Course[] = [];
     private modules: Module[] = [];
-    private lecons: Lecon[] = [];
-    private exercices: Exercice[] = [];
+    private lecons: Lesson[] = [];
+    private exercises: Exercise[] = [];
 
     async onModuleInit() {
         this.loadData();
@@ -38,20 +38,20 @@ export class CsvCatalogService implements OnModuleInit {
         // 2. Programmes
         const programmesRaw = this.readCsv(path.join(dataPath, 'programmes.csv'));
         this.programmes = programmesRaw.map(raw => {
-            const p = new Programme();
+            const p = new Program();
             p.id = raw.id;
             p.nom = raw.nom;
             p.description = raw.description;
             p.objectifPrincipal = raw.objectifPrincipal;
             p.tenantId = raw.tenantId;
-            p.cours = [];
+            p.course = [];
             return p;
         });
 
-        // 3. Cours
-        const coursRaw = this.readCsv(path.join(dataPath, 'cours.csv'));
-        this.cours = coursRaw.map(raw => {
-            const c = new Cours();
+        // 3. Course
+        const coursRaw = this.readCsv(path.join(dataPath, 'course.csv'));
+        this.course = coursRaw.map(raw => {
+            const c = new Course();
             c.id = raw.id;
             c.nom = raw.nom;
             c.description = raw.description;
@@ -60,8 +60,8 @@ export class CsvCatalogService implements OnModuleInit {
             c.modules = [];
             const prog = this.programmes.find(p => p.id === raw.programmeId);
             if (prog) {
-                c.programme = prog;
-                prog.cours.push(c);
+                c.program = prog;
+                prog.course.push(c);
             }
             return c;
         });
@@ -76,12 +76,12 @@ export class CsvCatalogService implements OnModuleInit {
             m.ordre = parseInt(raw.ordre, 10);
             m.coursId = raw.coursId;
             m.lecons = [];
-            const c = this.cours.find(co => co.id === raw.coursId);
+            const c = this.course.find(co => co.id === raw.coursId);
             if (c) {
-                m.cours = c;
+                m.course = c;
                 c.modules.push(m);
             }
-            const compIds = raw.competenceIds ? raw.competenceIds.split('|') : [];
+            const compIds = raw.competencyIds ? raw.competencyIds.split('|') : [];
             m.competences = compIds.map((id: string) => this.competences.find(cp => cp.id === id)!);
             m.prerequis = []; // Linked later
             return m;
@@ -99,30 +99,30 @@ export class CsvCatalogService implements OnModuleInit {
         // 6. Leçons
         const leconsRaw = this.readCsv(path.join(dataPath, 'lecons.csv'));
         this.lecons = leconsRaw.map(raw => {
-            const l = new Lecon();
+            const l = new Lesson();
             l.id = raw.id;
             l.titre = raw.titre;
             l.contenu = raw.contenu;
-            l.type = raw.type as TypeLecon;
+            l.type = raw.type as TypeLesson;
             l.ordre = parseInt(raw.ordre, 10);
             l.moduleId = raw.moduleId;
-            l.exercices = [];
+            l.exercises = [];
             const m = this.modules.find(mod => mod.id === raw.moduleId);
             if (m) {
                 l.module = m;
                 m.lecons.push(l);
             }
-            const compIds = raw.competenceIds ? raw.competenceIds.split('|') : [];
+            const compIds = raw.competencyIds ? raw.competencyIds.split('|') : [];
             l.competences = compIds.map((id: string) => this.competences.find(cp => cp.id === id)!);
             return l;
         });
 
         // 7. Exercices
-        const exercicesRaw = this.readCsv(path.join(dataPath, 'exercices.csv'));
+        const exercicesRaw = this.readCsv(path.join(dataPath, 'exercises.csv'));
         // Note: CSV has moduleId, but our entity now uses leconId (hierarchy).
-        // We assign exercices to the first lecon of the module for the POC.
-        this.exercices = exercicesRaw.map(raw => {
-            const e = new Exercice();
+        // We assign exercises to the first lesson of the module for the POC.
+        this.exercises = exercicesRaw.map(raw => {
+            const e = new Exercise();
             e.id = raw.id;
             e.titre = raw.titre;
             e.description = raw.description;
@@ -131,21 +131,21 @@ export class CsvCatalogService implements OnModuleInit {
             e.difficulty = raw.difficulty ? parseFloat(raw.difficulty) : 0.5;
             e.weight = raw.weight ? parseInt(raw.weight, 10) : 1;
             
-            const lecon = this.lecons.find(l => l.moduleId === raw.moduleId);
-            if (lecon) {
-                e.lecon = lecon;
-                e.leconId = lecon.id;
-                lecon.exercices.push(e);
+            const lesson = this.lecons.find(l => l.moduleId === raw.moduleId);
+            if (lesson) {
+                e.lesson = lesson;
+                e.leconId = lesson.id;
+                lesson.exercises.push(e);
             }
             
-            const compIds = raw.competenceIds ? raw.competenceIds.split('|') : [];
+            const compIds = raw.competencyIds ? raw.competencyIds.split('|') : [];
             e.competences = compIds.map((id: string) => this.competences.find(cp => cp.id === id)!);
             return e;
         });
 
         this.assertModulesPrerequisiteDagAcyclic();
 
-        console.log(`[CsvCatalogService] Data loaded: ${this.programmes.length} programmes, ${this.modules.length} modules, ${this.lecons.length} lecons, ${this.exercices.length} exercices.`);
+        console.log(`[CsvCatalogService] Data loaded: ${this.programmes.length} programmes, ${this.modules.length} modules, ${this.lecons.length} lecons, ${this.exercises.length} exercises.`);
     }
 
     /**
@@ -214,17 +214,17 @@ export class CsvCatalogService implements OnModuleInit {
     // --- Query Methods ---
     getProgrammes() { return this.programmes; }
     getProgrammeById(id: string) { return this.programmes.find(p => p.id === id); }
-    getCoursByProgramme(progId: string) { return this.cours.filter(c => c.programmeId === progId); }
-    getCoursById(id: string) { return this.cours.find(c => c.id === id); }
+    getCoursByProgramme(progId: string) { return this.course.filter(c => c.programmeId === progId); }
+    getCoursById(id: string) { return this.course.find(c => c.id === id); }
     getModulesByCours(coursId: string) { return this.modules.filter(m => m.coursId === coursId); }
     getModuleById(id: string) { return this.modules.find(m => m.id === id); }
-    getModulesByCompetence(competenceId: string) { 
-        return this.modules.filter(m => m.competences.some(c => c.id === competenceId)); 
+    getModulesByCompetence(competencyId: string) { 
+        return this.modules.filter(m => m.competences.some(c => c.id === competencyId)); 
     }
     getLeconsByModule(moduleId: string) { return this.lecons.filter(l => l.moduleId === moduleId); }
     getLeconById(id: string) { return this.lecons.find(l => l.id === id); }
-    getExercicesByLecon(leconId: string) { return this.exercices.filter(e => e.leconId === leconId); }
-    getExerciceById(id: string) { return this.exercices.find(e => e.id === id); }
+    getExercicesByLecon(leconId: string) { return this.exercises.filter(e => e.leconId === leconId); }
+    getExerciceById(id: string) { return this.exercises.find(e => e.id === id); }
     getCompetences() { return this.competences; }
     getCompetenceById(id: string) { return this.competences.find(c => c.id === id); }
 }

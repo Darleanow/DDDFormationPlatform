@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
 import { OnEvent } from '@nestjs/event-emitter';
-import { VerifierEligibiliteEtDelivrerHandler } from '../../application/commands/verifier-eligibilite-et-delivrer.handler';
-import { VerifierEligibiliteEtDelivrerCommand } from '../../application/commands/verifier-eligibilite-et-delivrer.command';
+import { VerifyEligibilityAndIssueHandler } from '../../application/commands/verify-eligibility-and-issue.handler';
+import { VerifyEligibilityAndIssueCommand } from '../../application/commands/verify-eligibility-and-issue.command';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
 import { CompetencyId } from '../../../../shared/competency-id';
-import type { ITentativeCertificationRepository } from '../../domain/repositories/tentative-certification.repository.interface';
-import { TentativeCertification } from '../../domain/entities/tentative-certification.entity';
+import type { ICertificationAttemptRepository } from '../../domain/repositories/certification-attempt.repository.interface';
+import { CertificationAttempt } from '../../domain/entities/certification-attempt.entity';
 import { Inject } from '@nestjs/common';
 import type { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
 
@@ -26,9 +26,9 @@ export interface CertificativeAssessmentScoredIntegrationEvent {
 @Injectable()
 export class CertificativeAssessmentScoredListener {
   constructor(
-    private readonly handler: VerifierEligibiliteEtDelivrerHandler,
-    @Inject('ITentativeCertificationRepository')
-    private readonly tentativeRepo: ITentativeCertificationRepository,
+    private readonly handler: VerifyEligibilityAndIssueHandler,
+    @Inject('ICertificationAttemptRepository')
+    private readonly tentativeRepo: ICertificationAttemptRepository,
     @Inject('ICertificationRepository')
     private readonly certRepo: ICertificationRepository,
   ) {}
@@ -58,21 +58,21 @@ export class CertificativeAssessmentScoredListener {
       payload.targetCertificationId,
     );
 
-    let tentative = existingTentative || new TentativeCertification(
+    let attempt = existingTentative || new CertificationAttempt(
       payload.learnerId,
       payload.targetCertificationId,
       0,
     );
 
     // Track attempt limit
-    if (tentative.nbTentativesEffectuees >= certification.regles.nbMaxTentatives) {
+    if (attempt.nbTentativesEffectuees >= certification.regles.nbMaxTentatives) {
       console.warn("⚠️ Learner attempts exceeded max attempts for this certification.");
       return;
     }
 
     // Increment and save attempt
-    tentative = tentative.incrementer();
-    await this.tentativeRepo.save(tentative);
+    attempt = attempt.incrementer();
+    await this.tentativeRepo.save(attempt);
 
     // Prepare domain boundaries
     const validedCompetences = payload.competences.map((comp) => {
@@ -86,7 +86,7 @@ export class CertificativeAssessmentScoredListener {
       );
     });
 
-    const command = new VerifierEligibiliteEtDelivrerCommand(
+    const command = new VerifyEligibilityAndIssueCommand(
       payload.learnerId,
       payload.targetCertificationId,
       payload.globalScore,

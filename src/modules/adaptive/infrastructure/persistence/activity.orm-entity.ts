@@ -23,7 +23,7 @@ export class ActivityOrmEntity {
   type: string;
 
   @Column('simple-json', { name: 'competence_ids' })
-  competenceIds: string[];
+  competencyIds: string[];
 
   @Column('int', { name: 'estimated_hours' })
   estimatedHours: number;

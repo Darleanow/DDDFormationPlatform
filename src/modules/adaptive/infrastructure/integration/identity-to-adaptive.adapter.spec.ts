@@ -35,7 +35,7 @@ describe('IdentityToAdaptiveAdapter', () => {
   });
 
   it('appends one BC4-aligned ASSESSMENT activity per catalogue competence after lessons', async () => {
-    const competenceId = 'comp-a';
+    const competencyId = 'comp-a';
     const mockCatalog = {
       findProgrammeById: jest.fn().mockResolvedValue({
         id: 'prog1',
@@ -45,11 +45,11 @@ describe('IdentityToAdaptiveAdapter', () => {
       findModulesByCours: jest.fn().mockResolvedValue([
         {
           id: 'm1',
-          competences: [{ id: competenceId }],
+          competences: [{ id: competencyId }],
         },
       ]),
       findLeconsByModule: jest.fn().mockResolvedValue([
-        { id: 'l1', competences: [{ id: competenceId }] },
+        { id: 'l1', competences: [{ id: competencyId }] },
       ]),
     };
 
@@ -72,7 +72,7 @@ describe('IdentityToAdaptiveAdapter', () => {
       (a: { type: string }) => a.type === 'ASSESSMENT',
     );
     expect(evalActs).toHaveLength(1);
-    expect(evalActs[0].contentId).toBe(assessmentAggregateIdForCompetency(competenceId));
-    expect(evalActs[0].competenceIds).toEqual([competenceId]);
+    expect(evalActs[0].contentId).toBe(assessmentAggregateIdForCompetency(competencyId));
+    expect(evalActs[0].competencyIds).toEqual([competencyId]);
   });
 });
