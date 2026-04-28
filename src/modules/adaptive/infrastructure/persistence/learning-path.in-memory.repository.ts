@@ -52,7 +52,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'algorithmique-recursive',
           'programmation-objet',
         ],
@@ -123,7 +123,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'structures-donnees',
           'complexite-algorithmique',
         ],
@@ -195,7 +195,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-entreprise-x',
       targetCertificationId: 'cert-securite-systemes',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'securite-web',
           'cryptographie',
           'gestion-vulnerabilites',
@@ -283,7 +283,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-web-js',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['javascript-core', 'javascript-async'],
+        mandatoryCompetencyIds: ['javascript-core', 'javascript-async'],
         weeklyHours: 10,
       }),
       activities: [act4a, act4b],
