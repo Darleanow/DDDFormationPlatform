@@ -18,6 +18,9 @@ export class AssessmentResultInterpreter {
     results: AssessmentItemResult[],
   ): AssessmentResultInterpretation {
     const score = ScoreCalculator.calculate(items, results);
+    const maxScore = items.reduce((sum, item) => sum + item.getWeight(), 0);
+    const normalizedRawScore = maxScore > 0 ? score.value / maxScore : 0;
+
     const { averageDifficulty, answerConsistency } = this.calculateSignals(
       items,
       results,
@@ -26,7 +29,8 @@ export class AssessmentResultInterpreter {
     // TODO: revisit the interpretation formula with domain experts.
     const difficultyFactor = 0.5 + 0.5 * averageDifficulty;
     const consistencyFactor = 0.5 + 0.5 * answerConsistency;
-    const interpretedScore = score.value * difficultyFactor * consistencyFactor;
+    // interpretedScore is now a probability [0..1]
+    const interpretedScore = Math.min(1, normalizedRawScore * difficultyFactor * consistencyFactor);
 
     return {
       score,
