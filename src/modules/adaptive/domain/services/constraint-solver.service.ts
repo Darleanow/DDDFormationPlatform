@@ -20,16 +20,19 @@ export class ConstraintSolverService {
   }
 
   /**
-   * Orders activities to prioritize skills
+   * Reorders PENDING activities to prioritize mandatory uncovered skills,
+   * while keeping COMPLETED activities untouched at the beginning.
    */
   prioritizeMandatory(path: LearningPath): void {
     const uncovered = new Set(path.getMandatoryUncoveredCompetences());
     if (uncovered.size === 0) return;
 
-    const activities = path.getActivities();
+    const allActivities = path.getActivities();
+    const completed = allActivities.filter((a) => !a.isPending());
+    const pending = allActivities.filter((a) => a.isPending());
 
-    // Priority for activities covering must have skills
-    activities.sort((a, b) => {
+    // Priority for pending activities covering must-have skills
+    pending.sort((a, b) => {
       const aIsMandatory = a.competenceIds.some((c) => uncovered.has(c));
       const bIsMandatory = b.competenceIds.some((c) => uncovered.has(c));
       if (aIsMandatory && !bIsMandatory) return -1;
@@ -37,8 +40,10 @@ export class ConstraintSolverService {
       return a.order - b.order;
     });
 
-    // Affects order
-    activities.forEach((a, i) => ((a as any).order = i));
-    path.reorderActivities(activities);
+    const newSequence = [...completed, ...pending];
+
+    // Affects order globally based on the new sequence
+    newSequence.forEach((a, i) => ((a as any).order = i));
+    path.reorderActivities(newSequence);
   }
 }

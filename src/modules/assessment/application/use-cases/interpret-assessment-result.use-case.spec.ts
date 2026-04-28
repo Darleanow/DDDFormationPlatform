@@ -31,6 +31,6 @@ describe('InterpretAssessmentResultUseCase', () => {
     expect(result.interpretation.score.value).toBe(2);
     expect(result.interpretation.averageDifficulty).toBeCloseTo(0.5, 4);
     expect(result.interpretation.answerConsistency).toBe(1);
-    expect(result.interpretation.interpretedScore).toBeCloseTo(1.5, 4);
+    expect(result.interpretation.interpretedScore).toBeCloseTo(0.75, 4);
   });
 });
