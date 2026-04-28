@@ -9,6 +9,11 @@ import {
   AssessmentAcl,
   AssessmentResultPayload,
 } from '../../infrastructure/acl/assessment-acl';
+import { Inject } from '@nestjs/common';
+import {
+  LEARNING_CATALOG_GATEWAY,
+} from '../ports/learning-catalog.gateway';
+import type { LearningCatalogGateway } from '../ports/learning-catalog.gateway';
 
 export { AssessmentResultPayload };
 
@@ -21,6 +26,8 @@ export class AssessmentResultHandler {
     private readonly solver: ConstraintSolverService,
     private readonly repo: LearningPathRepository,
     private readonly eventEmitter: EventEmitter2,
+    @Inject(LEARNING_CATALOG_GATEWAY)
+    private readonly catalogGateway: LearningCatalogGateway,
   ) {}
 
   @OnEvent('assessment.result')
@@ -41,11 +48,15 @@ export class AssessmentResultHandler {
     } else {
       // ── Normal adaptive flow: remédiation / accélération / contraintes ─────
 
-      // Remédiation ou accélération — mutuellement exclusifs
-      const remediated = this.remediation.applyIfNeeded(path, level, {
-        contentId: payload.remediationContentId,
-        estimatedHours: payload.remediationHours,
-      });
+      let remediated = false;
+
+      // Demander l'avis du domaine sur le besoin
+      if (level.needsRemediation()) {
+        const remediationContent = await this.catalogGateway.findRemediationContent(level.getCompetenceId());
+        if (remediationContent) {
+            remediated = this.remediation.applyIfNeeded(path, level, remediationContent);
+        }
+      }
 
       if (!remediated) {
         this.acceleration.applyIfEligible(path, level);

@@ -12,6 +12,7 @@ export interface InterpretAssessmentResultInput {
 
 export interface InterpretAssessmentResultOutput {
   assessmentId: string;
+  competenceId: string;
   interpretation: AssessmentResultInterpretation;
 }
 
@@ -29,13 +30,15 @@ export class InterpretAssessmentResultUseCase {
       throw new Error('Assessment not found');
     }
 
+    const items = assessment.getItems();
     const interpretation = this.interpreter.interpret(
-      assessment.getItems(),
+      items,
       input.itemResults,
     );
 
     return {
       assessmentId: assessment.getId(),
+      competenceId: items[0]?.getCompetenceId() || 'unknown-competence', // Assuming assessment targets one competence
       interpretation,
     };
   }
