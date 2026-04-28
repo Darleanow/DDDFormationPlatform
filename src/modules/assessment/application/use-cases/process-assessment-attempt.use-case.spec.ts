@@ -1,12 +1,16 @@
 import { ProcessAssessmentAttemptUseCase } from './process-assessment-attempt.use-case';
-import { CalculateScoreUseCase } from './calculate-score.use-case';
+import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
 import { BehavioralAnomalyDetector } from '../../domain/services/behavioral-anomaly-detector';
-import { AssessmentAttemptStatus } from '../../domain/aggregates/assessment/assessment-attempt';
+import {
+  AssessmentAttemptStatus,
+  ManualReviewStatus,
+} from '../../domain/aggregates/assessment/assessment-attempt';
 import { InMemoryAssessmentAttemptRepository } from '../../infrastructure/persistence/in-memory/in-memory-assessment-attempt.repository';
 import { InMemoryAssessmentRepository } from '../../infrastructure/persistence/in-memory/in-memory-assessment.repository';
 import { AssessmentItem } from '../../domain/aggregates/assessment/assessment-item';
 import { Assessment } from '../../domain/aggregates/assessment/assessment';
 import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
+import { AssessmentResultInterpreter } from '../../domain/services/assessment-result-interpreter';
 
 class FakeAdaptiveEngineGateway implements AdaptiveEngineGateway {
   submitted = false;
@@ -35,9 +39,13 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const assessment = new Assessment('assessment-1', items);
     await assessmentRepository.save(assessment);
 
-    const calculateScore = new CalculateScoreUseCase(assessmentRepository);
+    const interpreter = new AssessmentResultInterpreter();
+    const interpretResult = new InterpretAssessmentResultUseCase(
+      assessmentRepository,
+      interpreter,
+    );
     const useCase = new ProcessAssessmentAttemptUseCase(
-      calculateScore,
+      interpretResult,
       attemptRepository,
       adaptiveGateway,
       anomalyDetector,
@@ -55,6 +63,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     });
 
     expect(result.status).toBe(AssessmentAttemptStatus.SUSPECT);
+    expect(result.manualReviewStatus).toBe(ManualReviewStatus.PENDING);
     expect(result.requiresManualValidation).toBe(true);
     expect(adaptiveGateway.submitted).toBe(false);
   });
@@ -77,9 +86,13 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const assessment = new Assessment('assessment-2', items);
     await assessmentRepository.save(assessment);
 
-    const calculateScore = new CalculateScoreUseCase(assessmentRepository);
+    const interpreter = new AssessmentResultInterpreter();
+    const interpretResult = new InterpretAssessmentResultUseCase(
+      assessmentRepository,
+      interpreter,
+    );
     const useCase = new ProcessAssessmentAttemptUseCase(
-      calculateScore,
+      interpretResult,
       attemptRepository,
       adaptiveGateway,
       anomalyDetector,
@@ -97,6 +110,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     });
 
     expect(result.status).toBe(AssessmentAttemptStatus.COMPLETED);
+    expect(result.manualReviewStatus).toBe(ManualReviewStatus.NOT_REQUIRED);
     expect(result.requiresManualValidation).toBe(false);
     expect(adaptiveGateway.submitted).toBe(true);
   });

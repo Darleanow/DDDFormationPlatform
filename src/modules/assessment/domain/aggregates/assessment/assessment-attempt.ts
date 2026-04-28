@@ -6,8 +6,14 @@ export enum AssessmentAttemptStatus {
   SUSPECT = 'SUSPECT',
 }
 
+export enum ManualReviewStatus {
+  NOT_REQUIRED = 'NOT_REQUIRED',
+  PENDING = 'PENDING',
+}
+
 export class AssessmentAttempt {
   private status: AssessmentAttemptStatus;
+  private manualReviewStatus: ManualReviewStatus;
   private score?: Score;
   private behavioralAnomaly?: BehavioralAnomaly;
 
@@ -24,7 +30,9 @@ export class AssessmentAttempt {
       throw new Error('Duration must be a non-negative number');
     }
 
+    // TODO: revisit manual review workflow states with domain experts.
     this.status = AssessmentAttemptStatus.COMPLETED;
+    this.manualReviewStatus = ManualReviewStatus.NOT_REQUIRED;
   }
 
   getId(): string {
@@ -47,6 +55,14 @@ export class AssessmentAttempt {
     return this.status;
   }
 
+  getManualReviewStatus(): ManualReviewStatus {
+    return this.manualReviewStatus;
+  }
+
+  requiresManualValidation(): boolean {
+    return this.manualReviewStatus === ManualReviewStatus.PENDING;
+  }
+
   getScore(): Score | undefined {
     return this.score;
   }
@@ -61,6 +77,7 @@ export class AssessmentAttempt {
 
   markSuspect(anomaly: BehavioralAnomaly): void {
     this.status = AssessmentAttemptStatus.SUSPECT;
+    this.manualReviewStatus = ManualReviewStatus.PENDING;
     this.behavioralAnomaly = anomaly;
   }
 }
