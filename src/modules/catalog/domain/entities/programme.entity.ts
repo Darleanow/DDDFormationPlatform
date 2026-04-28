@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Cours } from './cours.entity.js';
+import { Cours } from './cours.entity';
 
 /**
  * Programme — Aggregate root du catalogue.

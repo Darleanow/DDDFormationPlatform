@@ -8,10 +8,10 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Cours } from './cours.entity.js';
-import { Competence } from './competence.entity.js';
-import { Lecon } from './lecon.entity.js';
-import { Exercice } from './exercice.entity.js';
+import { Cours } from './cours.entity';
+import { Competence } from './competence.entity';
+import { Lecon } from './lecon.entity';
+import { Exercice } from './exercice.entity';
 
 /**
  * Module — Subdivision d'un cours couvrant une notion ou une compétence précise.

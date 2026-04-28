@@ -8,10 +8,10 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Module } from './module.entity.js';
-import { Competence } from './competence.entity.js';
-import { Exercice } from './exercice.entity.js';
-import { TypeLecon } from '../enums/type-lecon.enum.js';
+import { Module } from './module.entity';
+import { Competence } from './competence.entity';
+import { Exercice } from './exercice.entity';
+import { TypeLecon } from '../enums/type-lecon.enum';
 
 /**
  * Leçon — Unité de contenu atomique au sein d'un module :

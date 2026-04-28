@@ -6,8 +6,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Programme } from './programme.entity.js';
-import { Module } from './module.entity.js';
+import { Programme } from './programme.entity';
+import { Module } from './module.entity';
 
 /**
  * Cours — Unité pédagogique de premier niveau, regroupant des modules
