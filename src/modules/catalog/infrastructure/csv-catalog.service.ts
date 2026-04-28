@@ -179,6 +179,9 @@ export class CsvCatalogService implements OnModuleInit {
     getCoursById(id: string) { return this.cours.find(c => c.id === id); }
     getModulesByCours(coursId: string) { return this.modules.filter(m => m.coursId === coursId); }
     getModuleById(id: string) { return this.modules.find(m => m.id === id); }
+    getModulesByCompetence(competenceId: string) { 
+        return this.modules.filter(m => m.competences.some(c => c.id === competenceId)); 
+    }
     getLeconsByModule(moduleId: string) { return this.lecons.filter(l => l.moduleId === moduleId); }
     getLeconById(id: string) { return this.lecons.find(l => l.id === id); }
     getExercicesByLecon(leconId: string) { return this.exercices.filter(e => e.leconId === leconId); }

@@ -39,6 +39,10 @@ export class CatalogQueryService {
         return this.csvService.getModuleById(id) || null;
     }
 
+    async findModulesByCompetence(competenceId: string): Promise<Module[]> {
+        return this.csvService.getModulesByCompetence(competenceId);
+    }
+
     // --- Leçons ---
     async findLeconsByModule(moduleId: string): Promise<Lecon[]> {
         return this.csvService.getLeconsByModule(moduleId);
