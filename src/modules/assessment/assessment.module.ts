@@ -6,6 +6,7 @@ import {
 } from './application/ports/adaptive-engine.gateway';
 import { CalculateScoreUseCase } from './application/use-cases/calculate-score.use-case';
 import { GenerateAssessmentUseCase } from './application/use-cases/generate-assessment.use-case';
+import { InterpretAssessmentResultUseCase } from './application/use-cases/interpret-assessment-result.use-case';
 import { ProcessAssessmentAttemptUseCase } from './application/use-cases/process-assessment-attempt.use-case';
 import { SubmitAssessmentUseCase } from './application/use-cases/submit-assessment.use-case';
 import {
@@ -14,6 +15,7 @@ import {
 	StaticEstimatedLevelDifficultyPolicy,
 } from './application/policies/estimated-level-difficulty.policy';
 import { BehavioralAnomalyDetector } from './domain/services/behavioral-anomaly-detector';
+import { AssessmentResultInterpreter } from './domain/services/assessment-result-interpreter';
 import { DifficultyRange } from './domain/value-objects/difficulty-range';
 import {
 	ASSESSMENT_ATTEMPT_REPOSITORY,
@@ -56,8 +58,15 @@ import { AssessmentController } from './presentation/controllers/assessment.cont
 			provide: ESTIMATED_LEVEL_DIFFICULTY_POLICY,
 			useFactory: () =>
 				new StaticEstimatedLevelDifficultyPolicy({
+					// TODO: revisit estimated level ranges with domain experts.
+					debutant: new DifficultyRange(0.1, 0.4),
 					intermediaire: new DifficultyRange(0.4, 0.7),
+					avance: new DifficultyRange(0.7, 0.95),
 				}),
+		},
+		{
+			provide: AssessmentResultInterpreter,
+			useClass: AssessmentResultInterpreter,
 		},
 		{
 			provide: BehavioralAnomalyDetector,
@@ -95,21 +104,29 @@ import { AssessmentController } from './presentation/controllers/assessment.cont
 			inject: [ASSESSMENT_REPOSITORY],
 		},
 		{
+			provide: InterpretAssessmentResultUseCase,
+			useFactory: (
+				assessments: AssessmentRepository,
+				interpreter: AssessmentResultInterpreter,
+			) => new InterpretAssessmentResultUseCase(assessments, interpreter),
+			inject: [ASSESSMENT_REPOSITORY, AssessmentResultInterpreter],
+		},
+		{
 			provide: ProcessAssessmentAttemptUseCase,
 			useFactory: (
-				calculateScore: CalculateScoreUseCase,
+				interpretResult: InterpretAssessmentResultUseCase,
 				attempts: AssessmentAttemptRepository,
 				adaptiveEngine: AdaptiveEngineGateway,
 				anomalyDetector: BehavioralAnomalyDetector,
 			) =>
 				new ProcessAssessmentAttemptUseCase(
-					calculateScore,
+					interpretResult,
 					attempts,
 					adaptiveEngine,
 					anomalyDetector,
 				),
 			inject: [
-				CalculateScoreUseCase,
+				InterpretAssessmentResultUseCase,
 				ASSESSMENT_ATTEMPT_REPOSITORY,
 				ADAPTIVE_ENGINE_GATEWAY,
 				BehavioralAnomalyDetector,

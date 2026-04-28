@@ -9,6 +9,7 @@ export interface AssessmentItemResult {
 export class ScoreCalculator {
   static calculate(items: AssessmentItem[], results: AssessmentItemResult[]): Score {
     const itemsById = new Map(items.map((item) => [item.getId(), item]));
+    // TODO: revisit whether weighting should be attached to items or attempts.
     let total = 0;
 
     for (const result of results) {
