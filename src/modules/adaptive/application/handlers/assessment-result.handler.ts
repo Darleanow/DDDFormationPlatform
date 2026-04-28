@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RemediationService } from '../../domain/services/remediation.service';
 import { AccelerationService } from '../../domain/services/acceleration.service';
@@ -14,6 +13,8 @@ import {
   LEARNING_CATALOG_GATEWAY,
 } from '../ports/learning-catalog.gateway';
 import type { LearningCatalogGateway } from '../ports/learning-catalog.gateway';
+import { LearningPathCompletedEvent } from '../../domain/events/learning-path-completed.event';
+import { BC_INPROCESS_EVENT } from '../../../../shared/bc-integration/in-process-events';
 
 export { AssessmentResultPayload };
 
@@ -30,10 +31,11 @@ export class AssessmentResultHandler {
     private readonly catalogGateway: LearningCatalogGateway,
   ) {}
 
-  @OnEvent('assessment.result')
   async handle(payload: AssessmentResultPayload): Promise<void> {
     const path = await this.repo.findByLearnerId(payload.learnerId);
     if (!path) return;
+
+    const completedActivity = path.getNextPendingActivity();
 
     // 1. Mark the assessed activity as done (aggregate method preserves encapsulation)
     path.markCurrentActivityCompleted();
@@ -41,6 +43,8 @@ export class AssessmentResultHandler {
     // 2. ACL: translate BC4 payload → BC3's EstimatedLevel
     const level = this.acl.translateResult(payload);
     path.updateLevel(level);
+
+    path.recordAssessmentActivityOutcome(completedActivity, level);
 
     if (path.checkCompletionStatus()) {
       // ── Path is complete: aggregate scores and emit domain event ───────────
@@ -52,7 +56,7 @@ export class AssessmentResultHandler {
 
       // Demander l'avis du domaine sur le besoin
       if (level.needsRemediation()) {
-        const remediationContent = await this.catalogGateway.findRemediationContent(level.getCompetenceId());
+        const remediationContent = await this.catalogGateway.findRemediationContent(level.getCompetencyId());
         if (remediationContent) {
             remediated = this.remediation.applyIfNeeded(path, level, remediationContent);
         }
@@ -67,7 +71,7 @@ export class AssessmentResultHandler {
       if (!result.feasible) {
         this.solver.prioritizeMandatory(path);
         const failureResult = result as { feasible: false; alertMessage: string; uncoveredCompetences: string[] };
-        this.eventEmitter.emit('adaptive.coverage.alert', {
+        await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
           learnerId: payload.learnerId,
           pathId: path.id,
           alertMessage: failureResult.alertMessage,
@@ -81,7 +85,17 @@ export class AssessmentResultHandler {
     // Dispatch all domain events (PathUpdatedEvent, RemediationTriggeredEvent,
     // LearningPathCompletedEvent, ...) accumulated during this transaction
     for (const domainEvent of path.pullDomainEvents()) {
-      this.eventEmitter.emit(domainEvent.constructor.name, domainEvent);
+      if (domainEvent instanceof LearningPathCompletedEvent) {
+        await this.eventEmitter.emitAsync(
+          BC_INPROCESS_EVENT.LEARNING_PATH_COMPLETED_CLASSNAME,
+          domainEvent,
+        );
+      } else {
+        await this.eventEmitter.emitAsync(
+          (domainEvent as { constructor: { name: string } }).constructor.name,
+          domainEvent,
+        );
+      }
     }
   }
 }
