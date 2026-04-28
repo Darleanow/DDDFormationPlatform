@@ -1,10 +1,12 @@
 import { RuleEngineService } from './rule-engine.service';
 import { Certification } from '../entities/certification.entity';
 import { ValidationCompetence } from '../value-objects/validation-competence.value-object';
+import { Injectable } from '@nestjs/common';
 
 /**
  * Domain Service : Orchestre la vérification d'éligibilité pour une Certification donnée.
  */
+@Injectable()
 export class EligibilityCheckService {
   constructor(private readonly ruleEngineService: RuleEngineService) {}
 

@@ -9,7 +9,7 @@ import { ParcoursTermineListener } from './presentation/listeners/parcours-termi
 
 @Module({
   providers: [
-    // 1. Services du Domaine
+    // 1. Services du Domaine (Just standard classes now!)
     RuleEngineService,
     EligibilityCheckService,
     CertificateIssuanceService,

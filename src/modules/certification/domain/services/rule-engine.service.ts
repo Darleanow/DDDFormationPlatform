@@ -3,11 +3,12 @@ import { ValidationCompetence } from '../value-objects/validation-competence.val
 import { ScoreGlobalInsuffisantException } from '../exceptions/score-global-insuffisant.exception';
 import { CompetenceCritiqueEnEchecException } from '../exceptions/competence-critique-en-echec.exception';
 import { CompetenceObligatoireManquanteException } from '../exceptions/competence-obligatoire-manquante.exception';
-
+import { Injectable } from '@nestjs/common';
 /**
  * Domain Service : Moteur d'évaluation des règles de certification.
  * Évalue si les résultats d'un apprenant respectent le référentiel de certification.
  */
+@Injectable()
 export class RuleEngineService {
   /**
    * Évalue les règles d'obtention par rapport aux résultats de l'apprenant.
