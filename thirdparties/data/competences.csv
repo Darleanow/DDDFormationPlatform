@@ -1,0 +1,21 @@
+id,nom,description
+c001,Variables et types,Maîtriser la déclaration et l'utilisation des types primitifs et complexes dans un langage typé.
+c002,Structures de contrôle,Utiliser conditionnels et boucles pour orchestrer le flux d'exécution d'un programme.
+c003,Fonctions et closures,Définir des fonctions pures, comprendre les closures et le passage par valeur ou référence.
+c004,Programmation orientée objet,Modéliser un domaine avec classes, héritage, encapsulation et polymorphisme.
+c005,Threads fondamentaux,Créer et gérer des threads natifs, comprendre le cycle de vie et les états d'un thread.
+c006,Concurrence avancée,Maîtriser les primitives de synchronisation : mutex, sémaphores, moniteurs et canaux.
+c007,Structures de données,Choisir et implémenter les structures adaptées : liste, pile, file, arbre, graphe, hash map.
+c008,Algorithmique récursive,Concevoir des algorithmes récursifs et analyser leur complexité temporelle et spatiale.
+c009,Tests unitaires,Écrire des tests unitaires isolés, maîtriser les mocks et atteindre une couverture significative.
+c010,Architecture logicielle,Appliquer les patterns architecturaux : hexagonale, layered, event-driven, microservices.
+c011,Gestion des erreurs,Concevoir une stratégie robuste de gestion des exceptions et des cas d'erreur.
+c012,Design patterns,Reconnaître et appliquer les patterns GoF : Factory, Strategy, Observer, Decorator, etc.
+c013,Bases de données relationnelles,Concevoir un schéma normalisé, écrire des requêtes SQL complexes et optimiser les index.
+c014,API REST,Concevoir et documenter une API RESTful respectant les conventions HTTP et les codes de statut.
+c015,Sécurité applicative,Prévenir les vulnérabilités OWASP : injection, XSS, CSRF, gestion sécurisée des secrets.
+c016,Conteneurisation,Créer des images Docker optimisées, orchestrer avec Docker Compose et comprendre les namespaces.
+c017,Intégration continue,Configurer des pipelines CI/CD : build, test, analyse statique et déploiement automatisé.
+c018,Performance et optimisation,Profiler une application, identifier les goulots d'étranglement et appliquer des optimisations mesurées.
+c019,Gestion de version,Maîtriser Git : branches, rebase, cherry-pick, résolution de conflits et workflows collaboratifs.
+c020,Domain-Driven Design,Identifier les contextes bornés, modéliser les agrégats et implémenter la couche domaine.

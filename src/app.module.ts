@@ -15,14 +15,10 @@ import { TenantModule } from './modules/tenant/tenant.module';
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
+      type: 'sqlite',
+      database: ':memory:',
       autoLoadEntities: true,
-      synchronize: true, // TO DISABLE
+      synchronize: true,
     }),
     TenantModule,
     IdentityModule,
