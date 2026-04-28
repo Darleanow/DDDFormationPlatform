@@ -1,4 +1,7 @@
-import { ActivityStatus, ActivityStatusValue } from '../value-objects/activity-status.vo';
+import {
+  ActivityStatus,
+  ActivityStatusValue,
+} from '../value-objects/activity-status.vo';
 
 export type ActivityType = 'LESSON' | 'EXERCISE' | 'ASSESSMENT' | 'REMEDIATION';
 
@@ -7,7 +10,7 @@ export class Activity {
 
   constructor(
     public readonly id: string,
-    public readonly contentId: string,       // ID in BC2
+    public readonly contentId: string, // ID in BC2
     public readonly type: ActivityType,
     public readonly competenceIds: string[],
     public readonly estimatedHours: number,

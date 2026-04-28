@@ -14,21 +14,22 @@ export class LearningPathMapper {
       deadlineAt: entity.deadlineAt ?? undefined,
     });
 
-    const levels = (entity.estimatedLevels ?? []).map(level =>
+    const levels = (entity.estimatedLevels ?? []).map((level) =>
       EstimatedLevel.from(level.competenceId, level.score),
     );
 
     const activities = (entity.activities ?? [])
-      .map(a =>
-        new Activity(
-          a.id,
-          a.contentId,
-          a.type as any,
-          a.competenceIds,
-          a.estimatedHours,
-          a.order,
-          ActivityStatus.fromString(a.status),
-        ),
+      .map(
+        (a) =>
+          new Activity(
+            a.id,
+            a.contentId,
+            a.type as any,
+            a.competenceIds,
+            a.estimatedHours,
+            a.order,
+            ActivityStatus.fromString(a.status),
+          ),
       )
       .sort((a, b) => a.order - b.order);
 
@@ -49,8 +50,10 @@ export class LearningPathMapper {
     entity.tenantId = path.tenantId;
     entity.weeklyHours = path.getConstraint().getWeeklyHours();
     entity.deadlineAt = path.getConstraint().getDeadline();
-    entity.mandatoryCompetenceIds = path.getConstraint().getMandatoryCompetenceIds();
-    entity.activities = path.getActivities().map(activity => {
+    entity.mandatoryCompetenceIds = path
+      .getConstraint()
+      .getMandatoryCompetenceIds();
+    entity.activities = path.getActivities().map((activity) => {
       const activityEntity = new ActivityOrmEntity();
       activityEntity.id = activity.id;
       activityEntity.contentId = activity.contentId;
@@ -62,7 +65,7 @@ export class LearningPathMapper {
       activityEntity.learningPath = entity;
       return activityEntity;
     });
-    entity.estimatedLevels = path.getLevels().map(level => ({
+    entity.estimatedLevels = path.getLevels().map((level) => ({
       competenceId: level.getCompetenceId(),
       score: level.value(),
     }));

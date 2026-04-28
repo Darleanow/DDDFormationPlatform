@@ -18,15 +18,19 @@ describe('LearningPathMapper', () => {
       }),
     });
 
-    path.addActivity(new Activity('activity-1', 'content-1', 'LESSON', ['c1'], 2, 1));
+    path.addActivity(
+      new Activity('activity-1', 'content-1', 'LESSON', ['c1'], 2, 1),
+    );
     path.updateLevel(EstimatedLevel.from('c1', 0.6));
 
     const ormEntity = LearningPathMapper.toOrm(path);
     expect(ormEntity.mandatoryCompetenceIds).toEqual(['c1']);
-    expect(ormEntity.estimatedLevels).toEqual([{ competenceId: 'c1', score: 0.6 }]);
+    expect(ormEntity.estimatedLevels).toEqual([
+      { competenceId: 'c1', score: 0.6 },
+    ]);
     expect(ormEntity.activities).toHaveLength(1);
 
-    const restored = LearningPathMapper.toDomain(ormEntity as LearningPathOrmEntity);
+    const restored = LearningPathMapper.toDomain(ormEntity);
     expect(restored.id).toBe(path.id);
     expect(restored.getActivities()).toHaveLength(1);
     expect(restored.getLevelFor('c1')?.value()).toBe(0.6);

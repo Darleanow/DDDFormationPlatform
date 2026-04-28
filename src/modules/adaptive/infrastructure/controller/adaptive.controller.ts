@@ -37,7 +37,12 @@ export class RecommendationResponseDto {
 export class WeeklySlotDto {
   weekStartDate: Date;
   plannedHours: number;
-  activities: { contentId: string; type: string; estimatedHours: number; order: number }[];
+  activities: {
+    contentId: string;
+    type: string;
+    estimatedHours: number;
+    order: number;
+  }[];
 }
 
 export class LearningPlanResponseDto {
@@ -63,10 +68,14 @@ export class AdaptiveController {
    * Returns the full learning path with constraint status.
    */
   @Get(':learnerId')
-  async getPath(@Param('learnerId') learnerId: string): Promise<PathResponseDto> {
+  async getPath(
+    @Param('learnerId') learnerId: string,
+  ): Promise<PathResponseDto> {
     const path = await this.repo.findByLearnerId(learnerId);
     if (!path) {
-      throw new NotFoundException(`Parcours non trouvé pour l'apprenant ${learnerId}`);
+      throw new NotFoundException(
+        `Parcours non trouvé pour l'apprenant ${learnerId}`,
+      );
     }
 
     const result = this.solver.solve(path);
@@ -82,7 +91,7 @@ export class AdaptiveController {
 
     return {
       learnerId,
-      activities: path.getActivities().map(a => this.toDto(a)),
+      activities: path.getActivities().map((a) => this.toDto(a)),
       nextActivity: nextActivity ? this.toDto(nextActivity) : null,
       coverageAtRisk: !result.feasible,
       alertMessage,
@@ -95,10 +104,14 @@ export class AdaptiveController {
    * Returns the next recommended activity with reason and coverage status.
    */
   @Get(':learnerId/recommendation')
-  async getRecommendation(@Param('learnerId') learnerId: string): Promise<RecommendationResponseDto> {
+  async getRecommendation(
+    @Param('learnerId') learnerId: string,
+  ): Promise<RecommendationResponseDto> {
     const path = await this.repo.findByLearnerId(learnerId);
     if (!path) {
-      throw new NotFoundException(`Parcours non trouvé pour l'apprenant ${learnerId}`);
+      throw new NotFoundException(
+        `Parcours non trouvé pour l'apprenant ${learnerId}`,
+      );
     }
 
     const solverResult = this.solver.solve(path);
@@ -124,7 +137,9 @@ export class AdaptiveController {
 
     return {
       learnerId,
-      nextActivity: recommendation.activity ? this.toDto(recommendation.activity) : null,
+      nextActivity: recommendation.activity
+        ? this.toDto(recommendation.activity)
+        : null,
       reason: recommendation.reason,
       coverageAtRisk: recommendation.coverageAtRisk,
     };
@@ -135,10 +150,14 @@ export class AdaptiveController {
    * Returns the temporal plan: activities allocated into weekly slots.
    */
   @Get(':learnerId/plan')
-  async getLearningPlan(@Param('learnerId') learnerId: string): Promise<LearningPlanResponseDto> {
+  async getLearningPlan(
+    @Param('learnerId') learnerId: string,
+  ): Promise<LearningPlanResponseDto> {
     const path = await this.repo.findByLearnerId(learnerId);
     if (!path) {
-      throw new NotFoundException(`Parcours non trouvé pour l'apprenant ${learnerId}`);
+      throw new NotFoundException(
+        `Parcours non trouvé pour l'apprenant ${learnerId}`,
+      );
     }
 
     const plan = LearningPlan.fromPath(randomUUID(), path);
@@ -150,10 +169,10 @@ export class AdaptiveController {
       totalWeeks: plan.getTotalPlannedWeeks(),
       estimatedCompletionDate: plan.getEstimatedCompletionDate(),
       feasibleByDeadline: deadline ? plan.isFeasibleByDeadline(deadline) : null,
-      slots: plan.getSlots().map(slot => ({
+      slots: plan.getSlots().map((slot) => ({
         weekStartDate: slot.weekStartDate,
         plannedHours: slot.plannedHours,
-        activities: slot.activities.map(a => ({
+        activities: slot.activities.map((a) => ({
           contentId: a.contentId,
           type: a.type,
           estimatedHours: a.estimatedHours,
@@ -175,4 +194,3 @@ export class AdaptiveController {
     };
   }
 }
-

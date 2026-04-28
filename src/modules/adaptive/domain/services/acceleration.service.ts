@@ -3,7 +3,7 @@ import { EstimatedLevel } from '../value-objects/estimated-level.vo';
 
 export class AccelerationService {
   /**
-   * Skip activities where skills are mastered already 
+   * Skip activities where skills are mastered already
    */
   applyIfEligible(path: LearningPath, level: EstimatedLevel): boolean {
     if (!level.canAccelerate()) return false;

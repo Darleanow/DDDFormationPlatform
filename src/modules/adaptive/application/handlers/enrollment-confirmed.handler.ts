@@ -33,6 +33,7 @@ export class EnrollmentConfirmedHandler {
       learnerId: event.learnerId,
       tenantId: event.tenantId,
       constraint,
+      targetCertificationId: event.targetCertificationId,
     });
 
     this.sequencing.buildInitialSequence(path, event.catalogActivities);
@@ -40,7 +41,7 @@ export class EnrollmentConfirmedHandler {
     const result = this.solver.solve(path);
     if (!result.feasible) {
       this.solver.prioritizeMandatory(path);
-      const failureResult = result as { feasible: false; alertMessage: string; uncoveredCompetences: string[] };
+      const failureResult = result;
       // Dispatch coverage alert — listeners (front, monitoring) can react
       this.eventEmitter.emit('adaptive.coverage.alert', {
         learnerId: event.learnerId,
@@ -59,4 +60,3 @@ export class EnrollmentConfirmedHandler {
     }
   }
 }
-

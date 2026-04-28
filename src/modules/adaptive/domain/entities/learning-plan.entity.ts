@@ -21,7 +21,7 @@ export class LearningPlan {
   static fromPath(id: string, path: LearningPath): LearningPlan {
     const pendingActivities = path
       .getActivities()
-      .filter(a => a.isPending())
+      .filter((a) => a.isPending())
       .sort((a, b) => a.order - b.order);
 
     const weeklyHours = path.getConstraint().getWeeklyHours();
@@ -34,7 +34,10 @@ export class LearningPlan {
 
     for (const activity of pendingActivities) {
       // If activity doesn't fit in remaining hours, start a new week
-      if (hoursUsedThisWeek + activity.estimatedHours > weeklyHours && currentSlotActivities.length > 0) {
+      if (
+        hoursUsedThisWeek + activity.estimatedHours > weeklyHours &&
+        currentSlotActivities.length > 0
+      ) {
         slots.push(
           new WeeklySlot(
             LearningPlan.addWeeks(startOfWeek, weekIndex),

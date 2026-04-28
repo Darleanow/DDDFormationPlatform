@@ -1,19 +1,29 @@
 export enum ActivityStatusValue {
-  PENDING   = 'PENDING',
+  PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  SKIPPED   = 'SKIPPED',
+  SKIPPED = 'SKIPPED',
   REMEDIATION = 'REMEDIATION',
 }
 
 export class ActivityStatus {
   private constructor(private readonly value: ActivityStatusValue) {}
 
-  static pending()     { return new ActivityStatus(ActivityStatusValue.PENDING); }
-  static inProgress()  { return new ActivityStatus(ActivityStatusValue.IN_PROGRESS); }
-  static completed()   { return new ActivityStatus(ActivityStatusValue.COMPLETED); }
-  static skipped()     { return new ActivityStatus(ActivityStatusValue.SKIPPED); }
-  static remediation() { return new ActivityStatus(ActivityStatusValue.REMEDIATION); }
+  static pending() {
+    return new ActivityStatus(ActivityStatusValue.PENDING);
+  }
+  static inProgress() {
+    return new ActivityStatus(ActivityStatusValue.IN_PROGRESS);
+  }
+  static completed() {
+    return new ActivityStatus(ActivityStatusValue.COMPLETED);
+  }
+  static skipped() {
+    return new ActivityStatus(ActivityStatusValue.SKIPPED);
+  }
+  static remediation() {
+    return new ActivityStatus(ActivityStatusValue.REMEDIATION);
+  }
 
   static fromString(value: string): ActivityStatus {
     switch (value) {
@@ -32,6 +42,10 @@ export class ActivityStatus {
     }
   }
 
-  is(v: ActivityStatusValue): boolean { return this.value === v; }
-  toString(): string { return this.value; }
+  is(v: ActivityStatusValue): boolean {
+    return this.value === v;
+  }
+  toString(): string {
+    return this.value;
+  }
 }
