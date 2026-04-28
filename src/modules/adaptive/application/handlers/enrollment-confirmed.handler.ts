@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'crypto';
 import { LearningPath } from '../../domain/entities/learning-path.entity';
 import { CoverageConstraint } from '../../domain/value-objects/coverage-constraint.vo';
-import { SequencingService } from '../../domain/services/sequencing.service';
+import { PathSequencingService } from '../../domain/services/path-sequencing.service';
 import { ConstraintSolverService } from '../../domain/services/constraint-solver.service';
 import { LearningPathRepository } from '../../domain/repositories/learning-path.repository';
 import { EnrollmentConfirmedEvent } from '../events/enrollment-confirmed.event';
@@ -14,7 +14,7 @@ export { EnrollmentConfirmedEvent };
 @Injectable()
 export class EnrollmentConfirmedHandler {
   constructor(
-    private readonly sequencing: SequencingService,
+    private readonly sequencing: PathSequencingService,
     private readonly solver: ConstraintSolverService,
     private readonly repo: LearningPathRepository,
     private readonly eventEmitter: EventEmitter2,

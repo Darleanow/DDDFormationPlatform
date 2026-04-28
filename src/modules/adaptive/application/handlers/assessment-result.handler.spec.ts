@@ -125,8 +125,8 @@ describe('AssessmentResultHandler', () => {
     expect(emittedEvent.learnerId).toBe('learner-eve');
     expect(emittedEvent.targetCertificationId).toBe('cert-completion-test');
     expect(emittedEvent.globalScore).toBeCloseTo(0.85, 5);
-    expect(emittedEvent.competenceResults[0].competenceId).toBe('c1');
-    expect(emittedEvent.competenceResults[0].score).toBeCloseTo(0.85, 5);
+    expect(emittedEvent.competencyResults[0].competencyId).toBe('c1');
+    expect(emittedEvent.competencyResults[0].score).toBeCloseTo(0.85, 5);
   });
 
   it('includes the raw estimated score in the completion event even when low', async () => {
@@ -142,7 +142,7 @@ describe('AssessmentResultHandler', () => {
       ([name]) => name === 'LearningPathCompletedEvent',
     );
     const emittedEvent: LearningPathCompletedEvent = completedCall![1];
-    expect(emittedEvent.competenceResults[0].score).toBeCloseTo(0.3, 5);
+    expect(emittedEvent.competencyResults[0].score).toBeCloseTo(0.3, 5);
   });
 
   it('does NOT emit LearningPathCompletedEvent when the path still has pending activities', async () => {
