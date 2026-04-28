@@ -8,13 +8,15 @@ import { IDelivranceRepository } from '../../domain/repositories/delivrance.repo
 import { Certification } from '../../domain/entities/certification.entity';
 import { RegleObtention } from '../../domain/entities/regle-obtention.entity';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
-import { CompetenceId } from '../../../../shared/competence-id';
+import { CompetencyId } from '../../../../shared/competency-id';
 import { ScoreGlobalInsuffisantException } from '../../domain/exceptions/score-global-insuffisant.exception';
+import { CertificationDelivreeEvent } from '../../domain/events/certification-delivree.event';
 
 describe('VerifierEligibiliteEtDelivrerHandler', () => {
   let handler: VerifierEligibiliteEtDelivrerHandler;
   let mockCertifRepo: jest.Mocked<ICertificationRepository>;
   let mockDelivranceRepo: jest.Mocked<IDelivranceRepository>;
+  let eventEmitter: { emit: jest.Mock };
 
   beforeEach(() => {
     // Mocks des interfaces (Ports)
@@ -24,6 +26,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
     mockDelivranceRepo = {
       save: jest.fn(),
     };
+    eventEmitter = { emit: jest.fn(), emitAsync: jest.fn().mockResolvedValue(undefined) };
 
     // Services du domaine réels pour un test d'intégration des règles
     const ruleEngine = new RuleEngineService();
@@ -35,6 +38,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
       mockDelivranceRepo,
       eligibilityCheck,
       issuanceService,
+      eventEmitter as any,
     );
   });
 
@@ -64,6 +68,10 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
     expect(mockCertifRepo.findById).toHaveBeenCalledWith('cert-123');
     // Vérifier que repository de délivrance a bien été appelé (une délivrance a été créée et sauvegardée)
     expect(mockDelivranceRepo.save).toHaveBeenCalledTimes(1);
+    expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
+      CertificationDelivreeEvent.EVENT_NAME,
+      expect.any(CertificationDelivreeEvent),
+    );
   });
 
   it('ne devrait rien sauvegarder et lever une exception si le score est insuffisant', async () => {
@@ -92,6 +100,7 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
 
     // On s'assure qu'aucune délivrance n'a fuité dans la base de données
     expect(mockDelivranceRepo.save).not.toHaveBeenCalled();
+    expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
   });
 
   it('devrait lever une erreur systémique si la certification est introuvable', async () => {
@@ -110,5 +119,6 @@ describe('VerifierEligibiliteEtDelivrerHandler', () => {
       'Certification "unknown-cert" introuvable.',
     );
     expect(mockDelivranceRepo.save).not.toHaveBeenCalled();
+    expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
   });
 });

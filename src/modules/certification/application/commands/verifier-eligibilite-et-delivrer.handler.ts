@@ -4,6 +4,8 @@ import { CertificateIssuanceService } from '../../domain/services/certificate-is
 import type { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
 import type { IDelivranceRepository } from '../../domain/repositories/delivrance.repository.interface';
 import { Injectable, Inject } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CertificationDelivreeEvent } from '../../domain/events/certification-delivree.event';
 
 /**
  * Application Service / Command Handler :
@@ -19,6 +21,7 @@ export class VerifierEligibiliteEtDelivrerHandler {
     private readonly delivranceRepo: IDelivranceRepository,
     private readonly eligibilityCheckService: EligibilityCheckService,
     private readonly issuanceService: CertificateIssuanceService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(command: VerifierEligibiliteEtDelivrerCommand): Promise<void> {
@@ -50,10 +53,10 @@ export class VerifierEligibiliteEtDelivrerHandler {
     // 4. Persistence du nouveau certificat (Adaptateur de base de données)
     await this.delivranceRepo.save(result.delivrance);
 
-    // 5. Publication de l'Event aux autres Bounded Contexts
-    // TODO: Utiliser un message broker ou l'Event Emitter de NestJS (ex: eventBus.publish(result.event))
-    console.log(
-      `[EVENT EMIS] Le candidat ${result.event.learnerId} a obtenu le diplôme ${result.event.certificationId}!`,
+    // 5. Publication de l'événement aux autres bounded contexts
+    await this.eventEmitter.emitAsync(
+      CertificationDelivreeEvent.EVENT_NAME,
+      result.event,
     );
   }
 }
