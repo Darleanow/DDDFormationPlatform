@@ -52,6 +52,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     );
 
     const result = await useCase.execute({
+      learnerId: 'learner-1',
       assessmentId: 'assessment-1',
       attemptId: 'attempt-1',
       questionCount: 20,
@@ -99,6 +100,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     );
 
     const result = await useCase.execute({
+      learnerId: 'learner-2',
       assessmentId: 'assessment-2',
       attemptId: 'attempt-2',
       questionCount: 20,

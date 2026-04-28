@@ -30,7 +30,7 @@ describe('GenerateAssessmentUseCase', () => {
 
     const result = await useCase.execute({
       assessmentId: 'assessment-1',
-      skillId: 'skill-1',
+      competenceId: 'skill-1',
       estimatedLevel: 'intermediaire',
     });
 
