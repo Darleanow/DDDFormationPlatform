@@ -1,0 +1,4 @@
+id,nom,description,objectifPrincipal,tenantId
+p001,Développement logiciel avancé,Programme complet couvrant les fondamentaux jusqu'aux concepts avancés du génie logiciel moderne.,Certification Développeur Senior,tenant-universite-lyon
+p002,DevOps & Cloud Engineering,Maîtriser les pratiques DevOps et l'infrastructure cloud pour des livraisons continues et fiables.,Certification DevOps Engineer,tenant-universite-lyon
+p003,Architecture des systèmes distribués,Concevoir et opérer des systèmes distribués à grande échelle en appliquant les patterns modernes.,Certification Architecte Logiciel,tenant-entreprise-techcorp

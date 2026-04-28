@@ -21,5 +21,9 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
+  },
+  "paths": {
+    "@modules/*": ["src/modules/*"],
+    "@shared/*": ["src/shared-kernel/*"]
   }
 }
