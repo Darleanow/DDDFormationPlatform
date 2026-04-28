@@ -7,9 +7,9 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Module } from './module.entity.js';
-import { Lecon } from './lecon.entity.js';
-import { Competence } from './competence.entity.js';
+import { Module } from './module.entity';
+import { Lecon } from './lecon.entity';
+import { Competence } from './competence.entity';
 
 /**
  * Exercice — Activité pratique permettant de mobiliser

@@ -10,6 +10,7 @@ import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
 
 export interface ProcessAssessmentAttemptInput {
+  learnerId: string;
   assessmentId: string;
   attemptId: string;
   questionCount: number;
@@ -52,6 +53,7 @@ export class ProcessAssessmentAttemptUseCase {
 
     const attempt = new AssessmentAttempt(
       input.attemptId,
+      input.learnerId,
       interpretationResult.assessmentId,
       input.questionCount,
       input.durationSeconds,
@@ -68,9 +70,9 @@ export class ProcessAssessmentAttemptUseCase {
 
     if (!anomaly) {
       await this.adaptiveEngine.submitScore({
-        assessmentId: interpretationResult.assessmentId,
-        attemptId: attempt.getId(),
-        score: interpretationResult.interpretation.score.value,
+        learnerId: attempt.getLearnerId(),
+        competenceId: interpretationResult.competenceId,
+        estimatedLevel: interpretationResult.interpretation.interpretedScore,
         tenantId: input.tenantId,
       });
     }

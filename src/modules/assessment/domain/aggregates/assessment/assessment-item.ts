@@ -1,7 +1,7 @@
 export class AssessmentItem {
   constructor(
     private readonly id: string,
-    private readonly skillId: string,
+    private readonly competenceId: string,
     private readonly difficulty: number,
     private readonly weight: number,
   ) {
@@ -17,8 +17,8 @@ export class AssessmentItem {
     return this.id;
   }
 
-  getSkillId(): string {
-    return this.skillId;
+  getCompetenceId(): string {
+    return this.competenceId;
   }
 
   getDifficulty(): number {

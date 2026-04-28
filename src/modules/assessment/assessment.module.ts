@@ -34,6 +34,8 @@ import { InMemoryAssessmentAttemptRepository } from './infrastructure/persistenc
 import { InMemoryAssessmentItemRepository } from './infrastructure/persistence/in-memory/in-memory-assessment-item.repository';
 import { InMemoryAssessmentRepository } from './infrastructure/persistence/in-memory/in-memory-assessment.repository';
 import { AssessmentController } from './presentation/controllers/assessment.controller';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitterAdaptiveEngineGateway } from './infrastructure/integration/event-emitter-adaptive-engine.gateway';
 
 @Module({
 	controllers: [AssessmentController],
@@ -52,7 +54,8 @@ import { AssessmentController } from './presentation/controllers/assessment.cont
 		},
 		{
 			provide: ADAPTIVE_ENGINE_GATEWAY,
-			useClass: NoopAdaptiveEngineGateway,
+			useFactory: (eventEmitter: EventEmitter2) => new EventEmitterAdaptiveEngineGateway(eventEmitter),
+			inject: [EventEmitter2],
 		},
 		{
 			provide: ESTIMATED_LEVEL_DIFFICULTY_POLICY,

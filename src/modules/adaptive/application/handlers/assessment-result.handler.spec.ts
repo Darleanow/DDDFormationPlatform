@@ -62,6 +62,7 @@ describe('AssessmentResultHandler', () => {
   let solver: jest.Mocked<ConstraintSolverService>;
   let repo: jest.Mocked<LearningPathRepository>;
   let eventEmitter: { emit: jest.Mock };
+  let catalogGateway: any;
 
   beforeEach(() => {
     acl         = { translateResult: jest.fn() } as any;
@@ -70,6 +71,7 @@ describe('AssessmentResultHandler', () => {
     solver      = { solve: jest.fn().mockReturnValue({ feasible: true }), prioritizeMandatory: jest.fn() } as any;
     repo        = { findByLearnerId: jest.fn(), save: jest.fn(), findById: jest.fn() } as any;
     eventEmitter = { emit: jest.fn() };
+    catalogGateway = { findRemediationContent: jest.fn().mockResolvedValue({ contentId: 'rem-id', estimatedHours: 1 }) };
 
     handler = new AssessmentResultHandler(
       acl,
@@ -78,11 +80,12 @@ describe('AssessmentResultHandler', () => {
       solver,
       repo,
       eventEmitter as any,
+      catalogGateway,
     );
   });
 
   const basePayload = new AssessmentResultPayload(
-    'learner-eve', 'c1', 0.9, 1.0, 'remediation-content', 1,
+    'learner-eve', 'c1', 0.9,
   );
 
   it('does nothing when no path is found for the learner', async () => {
@@ -164,6 +167,7 @@ describe('AssessmentResultHandler', () => {
 
     await handler.handle(basePayload);
 
+    expect(catalogGateway.findRemediationContent).toHaveBeenCalledWith('c1');
     expect(remediation.applyIfNeeded).toHaveBeenCalled();
     expect(solver.solve).toHaveBeenCalled();
   });

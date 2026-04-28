@@ -9,9 +9,13 @@ import { AssessmentAcl } from './infrastructure/acl/assessment-acl';
 import { LearningPathRepository } from './domain/repositories/learning-path.repository';
 import { LearningPathInMemoryRepository } from './infrastructure/persistence/learning-path.in-memory.repository';
 import { AdaptiveController } from './infrastructure/controller/adaptive.controller';
+import { CatalogModule } from '../catalog/catalog.module';
+import { CatalogQueryService } from '../catalog/application/catalog-query.service';
+import { InternalLearningCatalogGateway } from './infrastructure/integration/internal-learning-catalog.gateway';
+import { LEARNING_CATALOG_GATEWAY } from './application/ports/learning-catalog.gateway';
 
 @Module({
-  imports: [],
+  imports: [CatalogModule],
   providers: [
     // Domain services — plain classes, no @Injectable needed, NestJS resolves via useClass
     { provide: SequencingService, useClass: SequencingService },
@@ -30,6 +34,11 @@ import { AdaptiveController } from './infrastructure/controller/adaptive.control
     {
       provide: LearningPathRepository,
       useClass: LearningPathInMemoryRepository,
+    },
+    {
+      provide: LEARNING_CATALOG_GATEWAY,
+      useFactory: (catalogService: CatalogQueryService) => new InternalLearningCatalogGateway(catalogService),
+      inject: [CatalogQueryService],
     },
   ],
   controllers: [AdaptiveController],
