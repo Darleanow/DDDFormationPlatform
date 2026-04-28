@@ -8,10 +8,10 @@ export class RegleObtention {
   constructor(
     // Le score global minimum requis (ex: 70 pour 70%)
     public readonly scoreSeuil: number,
-    
+
     // Les compétences qui DOIVENT TOUTES être validées (si non-validées, pas de certification)
     public readonly competencesObligatoires: Set<CompetenceId>,
-    
+
     // Les compétences dont un ÉCHEC est bloquant/éliminatoire
     public readonly competencesCritiques: Set<CompetenceId>,
   ) {}

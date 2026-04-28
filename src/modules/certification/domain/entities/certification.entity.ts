@@ -14,7 +14,7 @@ export class Certification {
   ) {}
 
   /**
-   * En DDD, les Aggregate Roots contiennent souvent la logique pour modifier 
+   * En DDD, les Aggregate Roots contiennent souvent la logique pour modifier
    * leur propre état interne, garantissant ainsi l'intégrité des invariants.
    */
   public changerTitre(nouveauTitre: string): Certification {

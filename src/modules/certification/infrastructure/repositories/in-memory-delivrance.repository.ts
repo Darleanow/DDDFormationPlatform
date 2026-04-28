@@ -2,10 +2,10 @@ import { IDelivranceRepository } from '../../domain/repositories/delivrance.repo
 import { Delivrance } from '../../domain/entities/delivrance.entity';
 
 export class InMemoryDelivranceRepository implements IDelivranceRepository {
-  private readonly items: Delivrance[] = [];
+  public readonly items: Delivrance[] = [];
 
-  async save(delivrance: Delivrance): Promise<void> {
+  save(delivrance: Delivrance): Promise<void> {
     this.items.push(delivrance);
-    // TODO: complete mock logic
+    return Promise.resolve();
   }
 }

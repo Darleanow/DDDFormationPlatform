@@ -20,18 +20,22 @@ describe('RuleEngineService (BC5 - Certification)', () => {
       const regles = new RegleObtention(
         70, // scoreSeuil
         new Set(['COMP_OBLIG_1'] as CompetenceId[]), // competencesObligatoires
-        new Set(['COMP_CRITIQUE_1'] as CompetenceId[]) // competencesCritiques
+        new Set(['COMP_CRITIQUE_1'] as CompetenceId[]), // competencesCritiques
       );
 
       const scoreApprenant = 78;
-      
+
       const validationsApprenant = [
         new ValidationCompetence('COMP_OBLIG_1' as CompetenceId, true),
         new ValidationCompetence('COMP_CRITIQUE_1' as CompetenceId, true),
       ];
 
       // WHEN
-      const isEligible = ruleEngine.evaluer(regles, scoreApprenant, validationsApprenant);
+      const isEligible = ruleEngine.evaluer(
+        regles,
+        scoreApprenant,
+        validationsApprenant,
+      );
 
       // THEN
       expect(isEligible).toBe(true);
@@ -43,15 +47,15 @@ describe('RuleEngineService (BC5 - Certification)', () => {
       // GIVEN
       const regles = new RegleObtention(
         70, // scoreSeuil
-        new Set([] as CompetenceId[]), 
-        new Set(['secu_donnees'] as CompetenceId[]) // "Sécurité des données" est critique
+        new Set([] as CompetenceId[]),
+        new Set(['secu_donnees'] as CompetenceId[]), // "Sécurité des données" est critique
       );
 
-      const scoreApprenant = 85; 
-      
+      const scoreApprenant = 85;
+
       const validationsApprenant = [
         // L'apprenant a échoué sur cette compétence
-        new ValidationCompetence('secu_donnees' as CompetenceId, false), 
+        new ValidationCompetence('secu_donnees' as CompetenceId, false),
       ];
 
       // WHEN / THEN
@@ -65,9 +69,9 @@ describe('RuleEngineService (BC5 - Certification)', () => {
     it('devrait lever une ScoreGlobalInsuffisantException si le score est sous le seuil', () => {
       // GIVEN
       const regles = new RegleObtention(
-        70, 
-        new Set([] as CompetenceId[]), 
-        new Set([] as CompetenceId[])
+        70,
+        new Set([] as CompetenceId[]),
+        new Set([] as CompetenceId[]),
       );
 
       const scoreApprenant = 65; // Inférieur à 70
@@ -84,15 +88,15 @@ describe('RuleEngineService (BC5 - Certification)', () => {
     it('devrait lever une exception globale (ou renvoyer false) si une compétence obligatoire fait défaut', () => {
       // GIVEN
       const regles = new RegleObtention(
-        70, 
-        new Set(['COMP_OBLIG_1'] as CompetenceId[]), 
-        new Set([] as CompetenceId[])
+        70,
+        new Set(['COMP_OBLIG_1'] as CompetenceId[]),
+        new Set([] as CompetenceId[]),
       );
 
       const scoreApprenant = 80;
       const validationsApprenant = [
         // L'apprenant a échoué sa compétence obligatoire
-        new ValidationCompetence('COMP_OBLIG_1' as CompetenceId, false), 
+        new ValidationCompetence('COMP_OBLIG_1' as CompetenceId, false),
       ];
 
       // WHEN / THEN

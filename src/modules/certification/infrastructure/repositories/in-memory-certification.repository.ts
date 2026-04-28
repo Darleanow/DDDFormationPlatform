@@ -2,10 +2,10 @@ import { ICertificationRepository } from '../../domain/repositories/certificatio
 import { Certification } from '../../domain/entities/certification.entity';
 
 export class InMemoryCertificationRepository implements ICertificationRepository {
-  private readonly items: Certification[] = [];
+  public readonly items: Certification[] = [];
 
-  async findById(id: string): Promise<Certification | null> {
-    // TODO: Implement in-memory search
-    return null;
+  findById(id: string): Promise<Certification | null> {
+    const cert = this.items.find((c) => c.id === id);
+    return Promise.resolve(cert || null);
   }
 }
