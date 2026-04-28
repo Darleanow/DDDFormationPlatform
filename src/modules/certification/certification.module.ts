@@ -6,7 +6,7 @@ import { VerifierEligibiliteEtDelivrerHandler } from './application/commands/ver
 import { InMemoryCertificationRepository } from './infrastructure/repositories/in-memory-certification.repository';
 import { InMemoryDelivranceRepository } from './infrastructure/repositories/in-memory-delivrance.repository';
 import { InMemoryTentativeCertificationRepository } from './infrastructure/repositories/in-memory-tentative.repository';
-import { ParcoursTermineListener } from './presentation/listeners/parcours-termine.listener';
+import { LearningPathCompletedListener } from './presentation/listeners/learning-path-completed.listener';
 import { CertificativeAssessmentScoredListener } from './presentation/listeners/certificative-assessment-scored.listener';
 
 @Module({
@@ -20,7 +20,7 @@ import { CertificativeAssessmentScoredListener } from './presentation/listeners/
     VerifierEligibiliteEtDelivrerHandler,
 
     // 3. Écouteurs d'Événements externes (Presentation)
-    ParcoursTermineListener,
+    LearningPathCompletedListener,
     CertificativeAssessmentScoredListener,
 
     // 4. Mappage des Interfaces (Ports) vers les Implémentations (Adapters)

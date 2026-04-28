@@ -10,22 +10,26 @@ import { AssessmentModule } from './modules/assessment/assessment.module';
 import { CertificationModule } from './modules/certification/certification.module';
 import { TenantModule } from './modules/tenant/tenant.module';
 
+import { AppController } from './app.controller';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: ':memory:',
+      type: 'sqljs',
+      location: ':memory:',
       autoLoadEntities: true,
       synchronize: true,
+      autoSave: false,
     }),
     TenantModule,
     IdentityModule,
     CatalogModule,
-    AdaptiveModule,
     AssessmentModule,
+    AdaptiveModule,
     CertificationModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}

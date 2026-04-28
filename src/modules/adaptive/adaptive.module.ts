@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { SequencingService } from './domain/services/sequencing.service';
+import { PathSequencingService } from './domain/services/path-sequencing.service';
 import { RemediationService } from './domain/services/remediation.service';
 import { AccelerationService } from './domain/services/acceleration.service';
 import { ConstraintSolverService } from './domain/services/constraint-solver.service';
@@ -13,12 +13,14 @@ import { CatalogModule } from '../catalog/catalog.module';
 import { CatalogQueryService } from '../catalog/application/catalog-query.service';
 import { InternalLearningCatalogGateway } from './infrastructure/integration/internal-learning-catalog.gateway';
 import { LEARNING_CATALOG_GATEWAY } from './application/ports/learning-catalog.gateway';
+import { AssessmentToAdaptiveAdapter } from './infrastructure/integration/assessment-to-adaptive.adapter';
+import { IdentityToAdaptiveAdapter } from './infrastructure/integration/identity-to-adaptive.adapter';
 
 @Module({
   imports: [CatalogModule],
   providers: [
     // Domain services — plain classes, no @Injectable needed, NestJS resolves via useClass
-    { provide: SequencingService, useClass: SequencingService },
+    { provide: PathSequencingService, useClass: PathSequencingService },
     { provide: RemediationService, useClass: RemediationService },
     { provide: AccelerationService, useClass: AccelerationService },
     { provide: ConstraintSolverService, useClass: ConstraintSolverService },
@@ -40,6 +42,9 @@ import { LEARNING_CATALOG_GATEWAY } from './application/ports/learning-catalog.g
       useFactory: (catalogService: CatalogQueryService) => new InternalLearningCatalogGateway(catalogService),
       inject: [CatalogQueryService],
     },
+    // Adapter: translate public enrollment event into internal Adaptive envelope
+    IdentityToAdaptiveAdapter,
+    AssessmentToAdaptiveAdapter,
   ],
   controllers: [AdaptiveController],
   exports: [],

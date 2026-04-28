@@ -142,8 +142,45 @@ export class CsvCatalogService implements OnModuleInit {
             e.competences = compIds.map((id: string) => this.competences.find(cp => cp.id === id)!);
             return e;
         });
-        
+
+        this.assertModulesPrerequisiteDagAcyclic();
+
         console.log(`[CsvCatalogService] Data loaded: ${this.programmes.length} programmes, ${this.modules.length} modules, ${this.lecons.length} lecons, ${this.exercices.length} exercices.`);
+    }
+
+    /**
+     * Prerequisites must form a directed acyclic graph (DAG); cycles break adaptive ordering.
+     */
+    private assertModulesPrerequisiteDagAcyclic(): void {
+        const Color = { White: 0, Gray: 1, Black: 2 };
+        const color = new Map<string, number>();
+        for (const m of this.modules) {
+            color.set(m.id, Color.White);
+        }
+
+        const dfs = (moduleId: string): void => {
+            const current = color.get(moduleId);
+            if (current === Color.Gray) {
+                throw new Error(
+                    `Prerequisite dependency graph must be acyclic: cycle involving module "${moduleId}".`,
+                );
+            }
+            if (current === Color.Black) {
+                return;
+            }
+            color.set(moduleId, Color.Gray);
+            const mod = this.modules.find((x) => x.id === moduleId);
+            for (const prereq of mod?.prerequis ?? []) {
+                dfs(prereq.id);
+            }
+            color.set(moduleId, Color.Black);
+        };
+
+        for (const m of this.modules) {
+            if (color.get(m.id) === Color.White) {
+                dfs(m.id);
+            }
+        }
     }
 
     private readCsv(filePath: string): any[] {
