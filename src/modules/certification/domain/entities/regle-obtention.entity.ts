@@ -14,6 +14,9 @@ export class RegleObtention {
 
     // Les compétences dont un ÉCHEC est bloquant/éliminatoire
     public readonly competencesCritiques: Set<CompetenceId>,
+
+    // Nombre maximum de tentatives autorisées
+    public readonly nbMaxTentatives: number = 3,
   ) {}
 
   /**
