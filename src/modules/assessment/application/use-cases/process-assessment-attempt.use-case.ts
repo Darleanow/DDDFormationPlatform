@@ -5,7 +5,7 @@ import {
 } from '../../domain/aggregates/assessment/assessment-attempt';
 import { AssessmentAttemptRepository } from '../../domain/repositories/assessment-attempt-repository';
 import { AssessmentRepository } from '../../domain/repositories/assessment-repository';
-import { BehavioralAnomalyDetector } from '../../domain/services/behavioral-anomaly-detector';
+import { AnomalyDetectionService } from '../../domain/services/anomaly-detection.service';
 import { AssessmentItemResult } from '../../domain/services/score-calculator';
 import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
@@ -44,7 +44,7 @@ export class ProcessAssessmentAttemptUseCase {
     private readonly attempts: AssessmentAttemptRepository,
     private readonly assessments: AssessmentRepository,
     private readonly adaptiveEngine: AdaptiveEngineGateway,
-    private readonly anomalyDetector: BehavioralAnomalyDetector,
+    private readonly anomalyDetectionService: AnomalyDetectionService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -66,7 +66,7 @@ export class ProcessAssessmentAttemptUseCase {
 
     attempt.attachScore(interpretationResult.interpretation.score);
 
-    const anomaly = this.anomalyDetector.detect(attempt);
+    const anomaly = this.anomalyDetectionService.detect(attempt);
     if (anomaly) {
       attempt.markSuspect(anomaly);
     }
@@ -87,10 +87,10 @@ export class ProcessAssessmentAttemptUseCase {
         targetCertId,
         interpretationResult.interpretation.score.value, // globalscore
         [
-          { 
-            competenceId: interpretationResult.competenceId, 
-            score: interpretationResult.interpretation.interpretedScore 
-          }
+          {
+            competencyId: interpretationResult.competencyId,
+            score: interpretationResult.interpretation.interpretedScore,
+          },
         ],
         isSuspect,
       );
@@ -99,7 +99,7 @@ export class ProcessAssessmentAttemptUseCase {
       // Formative -> report to adaptive
       await this.adaptiveEngine.submitScore({
         learnerId: attempt.getLearnerId(),
-        competenceId: interpretationResult.competenceId,
+        competencyId: interpretationResult.competencyId,
         estimatedLevel: interpretationResult.interpretation.interpretedScore,
         tenantId: input.tenantId,
       });
