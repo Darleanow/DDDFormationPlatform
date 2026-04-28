@@ -42,10 +42,15 @@ export class AssessmentResultHandler {
       // ── Normal adaptive flow: remédiation / accélération / contraintes ─────
 
       // Remédiation ou accélération — mutuellement exclusifs
-      const remediated = this.remediation.applyIfNeeded(path, level, {
-        contentId: payload.remediationContentId,
-        estimatedHours: payload.remediationHours,
-      });
+      const canRemediate =
+        Boolean(payload.remediationContentId) &&
+        Number.isFinite(payload.remediationHours);
+      const remediated = canRemediate
+        ? this.remediation.applyIfNeeded(path, level, {
+            contentId: payload.remediationContentId as string,
+            estimatedHours: payload.remediationHours as number,
+          })
+        : false;
 
       if (!remediated) {
         this.acceleration.applyIfEligible(path, level);

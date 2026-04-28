@@ -232,20 +232,17 @@ describe('Adaptive domain services', () => {
   });
 
   describe('AssessmentAcl', () => {
-    it('adjusts the raw score by difficulty and clamps it between 0 and 1', () => {
+    it('clamps estimated level between 0 and 1', () => {
       const acl = new AssessmentAcl();
       const payload = new AssessmentResultPayload(
         'learner-5',
         'c1',
         0.6,
-        0.7,
-        'remediation-3',
-        1,
       );
 
       const level = acl.translateResult(payload);
 
-      expect(level.value()).toBeCloseTo(0.51, 2);
+      expect(level.value()).toBeCloseTo(0.6, 2);
     });
 
     it('clamps adjusted scores outside range to 0 and 1', () => {
@@ -254,17 +251,11 @@ describe('Adaptive domain services', () => {
         'learner-6',
         'c1',
         -0.4,
-        0.2,
-        'remediation-4',
-        1,
       );
       const overflow = new AssessmentResultPayload(
         'learner-7',
         'c1',
         1.4,
-        1,
-        'remediation-5',
-        1,
       );
 
       expect(acl.translateResult(underflow).value()).toBe(0);

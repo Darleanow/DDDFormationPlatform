@@ -82,7 +82,11 @@ describe('AssessmentResultHandler', () => {
   });
 
   const basePayload = new AssessmentResultPayload(
-    'learner-eve', 'c1', 0.9, 1.0, 'remediation-content', 1,
+    'learner-eve',
+    'c1',
+    0.9,
+    'remediation-content',
+    1,
   );
 
   it('does nothing when no path is found for the learner', async () => {
