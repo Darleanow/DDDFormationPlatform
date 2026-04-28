@@ -157,10 +157,10 @@ describe('Context Map E2E — BC2 · BC3 · BC4 · BC5', () => {
 
     const payload = ingress![1] as AssessmentScorePublishedForAdaptivePayload;
     expect(Object.keys(payload).sort()).toEqual(
-      ['competenceId', 'estimatedLevel', 'learnerId', 'tenantId'].sort(),
+      ['competencyId', 'estimatedLevel', 'learnerId', 'tenantId'].sort(),
     );
     expect(payload.learnerId).toBe('e2e-acl-probe');
-    expect(payload.competenceId).toBe(SK_COMPETENCE);
+    expect(payload.competencyId).toBe(SK_COMPETENCE);
     expect(typeof payload.estimatedLevel).toBe('number');
     expect(payload.estimatedLevel).toBeGreaterThanOrEqual(0);
     expect(payload.estimatedLevel).toBeLessThanOrEqual(1);

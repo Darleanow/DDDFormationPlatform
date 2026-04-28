@@ -1,8 +1,12 @@
+import { BC_INPROCESS_EVENT } from '../../../../shared/bc-integration/in-process-events';
+
 /**
- * Événement du domaine publié lorsqu'un certificat a été effectivement délivré.
- * En DDD, cet événement prévient les autres BC (ex: BC Identity pour enrichir le profil public de l'apprenant).
+ * Domain event emitted when a certificate has effectively been issued.
+ * Other bounded contexts subscribe (e.g. Identity public learner profile).
  */
 export class CertificationDelivreeEvent {
+  static readonly EVENT_NAME = BC_INPROCESS_EVENT.CERTIFICATION_ISSUED;
+
   constructor(
     public readonly delivranceId: string,
     public readonly certificationId: string,

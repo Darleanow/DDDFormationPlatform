@@ -3,7 +3,8 @@ import { EnrollmentService } from '../../application/services/enrollment.service
 import { Learner } from '../../domain/aggregates/learner.aggregate';
 import type { ILearnerRepository } from '../../domain/repositories/learner.repository.interface';
 import type { IEnrollmentRepository } from '../../domain/repositories/enrollment.repository.interface';
-import type { TenantResolverService } from '../../../tenant/application/services/tenant-resolver.service';
+import type { TenantConfigService } from '../../../tenant/application/services/tenant-config.service';
+import type { CatalogQueryService } from '../../../catalog/application/catalog-query.service';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { EnrollmentConfirmedEvent } from '../../domain/events/enrollment-confirmed.event';
 
@@ -11,7 +12,8 @@ describe('EnrollmentService', () => {
   let service: EnrollmentService;
   let learnerRepo: jest.Mocked<ILearnerRepository>;
   let enrollmentRepo: jest.Mocked<IEnrollmentRepository>;
-  let tenantResolver: jest.Mocked<TenantResolverService>;
+  let tenantConfig: jest.Mocked<TenantConfigService>;
+  let catalogQuery: jest.Mocked<CatalogQueryService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
 
   const futureDeadline = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
@@ -24,10 +26,22 @@ describe('EnrollmentService', () => {
       existsByLearnerAndProgram: jest.fn(),
       save: jest.fn(),
     };
-    tenantResolver = { resolve: jest.fn(), assertExists: jest.fn() } as any;
-    eventEmitter = { emit: jest.fn() } as any;
+    tenantConfig = { assertExists: jest.fn() } as any;
+    catalogQuery = {
+      findProgrammeById: jest.fn(),
+    } as any;
+    eventEmitter = {
+      emit: jest.fn(),
+      emitAsync: jest.fn().mockResolvedValue(undefined),
+    } as any;
 
-    service = new EnrollmentService(learnerRepo, enrollmentRepo, tenantResolver, eventEmitter);
+    service = new EnrollmentService(
+      learnerRepo,
+      enrollmentRepo,
+      tenantConfig,
+      catalogQuery,
+      eventEmitter,
+    );
   });
 
   // Scenario: Enrollment with declared constraints
@@ -41,8 +55,12 @@ describe('EnrollmentService', () => {
         firstName: 'Alice',
       });
 
-      tenantResolver.assertExists.mockResolvedValue(undefined);
+      tenantConfig.assertExists.mockResolvedValue(undefined);
       learnerRepo.findById.mockResolvedValue(alice);
+      catalogQuery.findProgrammeById.mockResolvedValue({
+        id: 'prog-advanced-software',
+        tenantId: 'univ-lyon',
+      } as any);
       enrollmentRepo.existsByLearnerAndProgram.mockResolvedValue(false);
       enrollmentRepo.save.mockResolvedValue(undefined);
 
@@ -57,7 +75,7 @@ describe('EnrollmentService', () => {
       expect(enrollment.learnerId).toBe('alice-id');
       expect(enrollment.weeklyAvailabilityHours).toBe(10);
       expect(enrollmentRepo.save).toHaveBeenCalled();
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
         EnrollmentConfirmedEvent.EVENT_NAME,
         expect.any(EnrollmentConfirmedEvent),
       );
@@ -73,8 +91,12 @@ describe('EnrollmentService', () => {
         firstName: 'Bob',
       });
 
-      tenantResolver.assertExists.mockResolvedValue(undefined);
+      tenantConfig.assertExists.mockResolvedValue(undefined);
       learnerRepo.findById.mockResolvedValue(bob);
+      catalogQuery.findProgrammeById.mockResolvedValue({
+        id: 'prog-reserved-univ',
+        tenantId: 'univ-lyon',
+      } as any);
 
       await expect(
         service.enroll({
@@ -86,11 +108,40 @@ describe('EnrollmentService', () => {
         }),
       ).rejects.toThrow(ForbiddenException);
 
-      expect(eventEmitter.emit).not.toHaveBeenCalled();
+      expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
+    });
+
+    it('rejects enrollment when programme belongs to another tenant', async () => {
+      const alice = Learner.create({
+        id: 'alice-id',
+        tenantId: 'univ-lyon',
+        email: 'alice@univ.fr',
+        lastName: 'Dupont',
+        firstName: 'Alice',
+      });
+
+      tenantConfig.assertExists.mockResolvedValue(undefined);
+      learnerRepo.findById.mockResolvedValue(alice);
+      catalogQuery.findProgrammeById.mockResolvedValue({
+        id: 'corp-only-prog',
+        tenantId: 'company-x',
+      } as any);
+
+      await expect(
+        service.enroll({
+          learnerId: 'alice-id',
+          tenantId: 'univ-lyon',
+          programId: 'corp-only-prog',
+          weeklyAvailabilityHours: 5,
+          deadline: futureDeadline,
+        }),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
     });
 
     it('rejects if tenant does not exist', async () => {
-      tenantResolver.assertExists.mockRejectedValue(new NotFoundException());
+      tenantConfig.assertExists.mockRejectedValue(new NotFoundException());
       await expect(
         service.enroll({
           learnerId: 'alice-id',
@@ -111,8 +162,12 @@ describe('EnrollmentService', () => {
         firstName: 'Alice',
       });
 
-      tenantResolver.assertExists.mockResolvedValue(undefined);
+      tenantConfig.assertExists.mockResolvedValue(undefined);
       learnerRepo.findById.mockResolvedValue(alice);
+      catalogQuery.findProgrammeById.mockResolvedValue({
+        id: 'prog-advanced-software',
+        tenantId: 'univ-lyon',
+      } as any);
       enrollmentRepo.existsByLearnerAndProgram.mockResolvedValue(true);
 
       await expect(

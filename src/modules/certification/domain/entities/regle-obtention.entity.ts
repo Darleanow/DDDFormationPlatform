@@ -1,4 +1,4 @@
-import { CompetenceId } from '../../../../shared/competence-id';
+import { CompetencyId } from '../../../../shared/competency-id';
 
 /**
  * Value Object (ou Entité) décrivant les critères stricts pour l'obtention d'une certification.
@@ -10,10 +10,10 @@ export class RegleObtention {
     public readonly scoreSeuil: number,
 
     // Les compétences qui DOIVENT TOUTES être validées (si non-validées, pas de certification)
-    public readonly competencesObligatoires: Set<CompetenceId>,
+    public readonly competencesObligatoires: Set<CompetencyId>,
 
     // Les compétences dont un ÉCHEC est bloquant/éliminatoire
-    public readonly competencesCritiques: Set<CompetenceId>,
+    public readonly competencesCritiques: Set<CompetencyId>,
 
     // Nombre maximum de tentatives autorisées
     public readonly nbMaxTentatives: number = 3,
@@ -22,14 +22,14 @@ export class RegleObtention {
   /**
    * Méthode utilitaire pour vérifier si une compétence est considérée comme critique.
    */
-  estUneCompetenceCritique(competenceId: CompetenceId): boolean {
+  estUneCompetenceCritique(competenceId: CompetencyId): boolean {
     return this.competencesCritiques.has(competenceId);
   }
 
   /**
    * Méthode utilitaire pour vérifier si une compétence est obligatoire.
    */
-  estUneCompetenceObligatoire(competenceId: CompetenceId): boolean {
+  estUneCompetenceObligatoire(competenceId: CompetencyId): boolean {
     return this.competencesObligatoires.has(competenceId);
   }
 }

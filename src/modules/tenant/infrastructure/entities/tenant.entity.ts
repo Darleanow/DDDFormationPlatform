@@ -10,7 +10,7 @@ export class TenantEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'simple-json', default: '{}' })
   rules: TenantRules;
 
   @Column({ default: true })

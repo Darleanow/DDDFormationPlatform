@@ -8,11 +8,13 @@ import { LEARNER_REPOSITORY } from './domain/repositories/learner.repository.int
 import { ENROLLMENT_REPOSITORY } from './domain/repositories/enrollment.repository.interface';
 import { EnrollmentService } from './application/services/enrollment.service';
 import { TenantModule } from '../tenant/tenant.module';
+import { CatalogModule } from '../catalog/catalog.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([LearnerEntity, EnrollmentEntity]),
     TenantModule,
+    CatalogModule,
   ],
   providers: [
     { provide: LEARNER_REPOSITORY, useClass: TypeOrmLearnerRepository },

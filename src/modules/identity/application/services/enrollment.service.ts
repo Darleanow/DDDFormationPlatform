@@ -1,4 +1,10 @@
-import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'crypto';
 import { Learner } from '../../domain/aggregates/learner.aggregate';
@@ -8,7 +14,8 @@ import type { ILearnerRepository } from '../../domain/repositories/learner.repos
 import { LEARNER_REPOSITORY } from '../../domain/repositories/learner.repository.interface';
 import type { IEnrollmentRepository } from '../../domain/repositories/enrollment.repository.interface';
 import { ENROLLMENT_REPOSITORY } from '../../domain/repositories/enrollment.repository.interface';
-import { TenantResolverService } from '../../../tenant/application/services/tenant-resolver.service';
+import { TenantConfigService } from '../../../tenant/application/services/tenant-config.service';
+import { CatalogQueryService } from '../../../catalog/application/catalog-query.service';
 import { CreateLearnerDto, EnrollLearnerDto } from '../dtos/identity.dto';
 
 @Injectable()
@@ -18,12 +25,13 @@ export class EnrollmentService {
     private readonly learnerRepo: ILearnerRepository,
     @Inject(ENROLLMENT_REPOSITORY)
     private readonly enrollmentRepo: IEnrollmentRepository,
-    private readonly tenantResolver: TenantResolverService,
+    private readonly tenantConfig: TenantConfigService,
+    private readonly catalogQuery: CatalogQueryService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createLearner(dto: CreateLearnerDto): Promise<Learner> {
-    await this.tenantResolver.assertExists(dto.tenantId);
+    await this.tenantConfig.assertExists(dto.tenantId);
 
     const learner = Learner.create({
       id: randomUUID(),
@@ -39,13 +47,21 @@ export class EnrollmentService {
 
   async enroll(dto: EnrollLearnerDto): Promise<Enrollment> {
     // 1. Verify tenant exists
-    await this.tenantResolver.assertExists(dto.tenantId);
+    await this.tenantConfig.assertExists(dto.tenantId);
 
     // 2. Verify learner belongs to the same tenant
     const learner = await this.learnerRepo.findById(dto.learnerId);
     if (!learner) throw new ForbiddenException('Learner not found');
     if (!learner.belongsToTenant(dto.tenantId)) {
-      throw new ForbiddenException('Program not accessible to this tenant');
+      throw new ForbiddenException('Learner cannot enroll on behalf of another tenant');
+    }
+
+    const programme = await this.catalogQuery.findProgrammeById(dto.programId);
+    if (!programme) {
+      throw new NotFoundException('Programme not found');
+    }
+    if (programme.tenantId !== learner.tenantId) {
+      throw new ForbiddenException('Programme not accessible to this tenant');
     }
 
     // 3. Prevent duplicate enrollment
@@ -70,7 +86,7 @@ export class EnrollmentService {
     await this.enrollmentRepo.save(enrollment);
 
     // 5. Publish event to BC3 — only after successful persist
-    this.eventEmitter.emit(
+    await this.eventEmitter.emitAsync(
       EnrollmentConfirmedEvent.EVENT_NAME,
       new EnrollmentConfirmedEvent(
         enrollment.learnerId,

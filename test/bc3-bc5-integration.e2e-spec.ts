@@ -75,7 +75,7 @@ describe('Integration between BC3 (Adaptive) and BC5 (Certification)', () => {
       learnerId,
       certificationId,
       0.85,
-      [{ competenceId: 'comp-1', score: 0.85 }],
+      [{ competencyId: 'comp-1', score: 0.85 }],
     );
 
     await eventEmitter.emitAsync(

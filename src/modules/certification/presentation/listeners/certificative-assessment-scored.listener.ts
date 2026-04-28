@@ -4,11 +4,11 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { VerifierEligibiliteEtDelivrerHandler } from '../../application/commands/verifier-eligibilite-et-delivrer.handler';
 import { VerifierEligibiliteEtDelivrerCommand } from '../../application/commands/verifier-eligibilite-et-delivrer.command';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
-import { CompetenceId } from '../../../../shared/competence-id';
-import { ITentativeCertificationRepository } from '../../domain/repositories/tentative-certification.repository.interface';
+import { CompetencyId } from '../../../../shared/competency-id';
+import type { ITentativeCertificationRepository } from '../../domain/repositories/tentative-certification.repository.interface';
 import { TentativeCertification } from '../../domain/entities/tentative-certification.entity';
 import { Inject } from '@nestjs/common';
-import { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
+import type { ICertificationRepository } from '../../domain/repositories/certification.repository.interface';
 
 export interface CertificativeAssessmentScoredIntegrationEvent {
   attemptId: string;
@@ -17,7 +17,7 @@ export interface CertificativeAssessmentScoredIntegrationEvent {
   targetCertificationId: string;
   globalScore: number;
   competences: Array<{
-    competenceId: string;
+    competencyId: string;
     score: number;
   }>;
   isSuspect: boolean;
@@ -81,7 +81,7 @@ export class CertificativeAssessmentScoredListener {
       // Here we map raw scores to `ValidationCompetence=true` if score >= 0.5 (basic assumption).
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return new ValidationCompetence(
-        comp.competenceId as CompetenceId,
+        comp.competencyId as CompetencyId,
         comp.score >= 0.5,
       );
     });
