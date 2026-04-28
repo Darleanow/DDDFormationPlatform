@@ -1,0 +1,81 @@
+id,titre,contenu,type,ordre,moduleId,competenceIds
+l001,Introduction aux types primitifs,Présentation des types int float boolean string et leurs subtilités selon les langages.,TEXTE,1,m001,c001
+l002,Inférence de types et annotations,Comment le compilateur déduit les types et quand annoter explicitement.,VIDEO,2,m001,c001
+l003,Types composés et alias,Tuples enums unions et création d'alias de types pour un code expressif.,INTERACTIF,3,m001,c001
+l004,Conditionnels et expressions booléennes,if-else ternaire et opérateurs logiques avec court-circuit.,TEXTE,1,m002,c002
+l005,Boucles et itérateurs,for while do-while et l'utilisation des itérateurs modernes.,VIDEO,2,m002,c002
+l006,Pattern matching,Switch expressions et pattern matching pour des structures de contrôle lisibles.,SIMULATION,3,m002,c002
+l007,Fonctions de premier ordre,Fonctions comme valeurs passage en paramètre et retour de fonctions.,TEXTE,1,m003,c003
+l008,Closures et portée lexicale,Comprendre la capture de variables et les environnements lexicaux.,VIDEO,2,m003,c003
+l009,Fonctions pures et effets de bord,Définir la pureté différencier les effets de bord et leurs impacts sur la testabilité.,INTERACTIF,3,m003,c003
+l010,Déclaration de classes et constructeurs,Syntaxe de classe constructeurs et initialisation des attributs.,TEXTE,1,m004,c004
+l011,Héritage et classe abstraite,Extension de classes méthodes abstraites et règles du contrat.,VIDEO,2,m004,c004
+l012,Interfaces et duck typing,Définition d'interfaces contrats comportementaux et implémentations multiples.,SIMULATION,3,m004,c004
+l013,Encapsulation et modificateurs,public private protected et les getters/setters.,TEXTE,1,m005,c004
+l014,Surcharge et substitution,Overloading vs overriding et le principe de substitution de Liskov.,VIDEO,2,m005,c004
+l015,Gestion des exceptions checked/unchecked,Hiérarchie des exceptions try-catch-finally et bonnes pratiques.,TEXTE,1,m006,c011
+l016,Pattern Result et Either,Modélisation des erreurs sans exceptions : types Result Option et Either.,VIDEO,2,m006,c011
+l017,Création et démarrage de threads,Thread API cycle de vie et transitions d'états.,TEXTE,1,m007,c005
+l018,Communication inter-threads,Partage de données wait notify et variables volatiles.,VIDEO,2,m007,c005
+l019,Sections critiques et verrous,Race conditions mutex ReentrantLock et conditions d'interblocage.,TEXTE,1,m008,c005
+l020,Structures de données concurrentes,ConcurrentHashMap BlockingQueue et classes atomiques.,VIDEO,2,m008,c006
+l021,Acteurs et modèle de messages,Modèle acteur isolation de l'état et passage de messages asynchrones.,TEXTE,1,m009,c006
+l022,Structures lock-free,CAS compare-and-swap algorithmes sans verrou et garanties de progression.,VIDEO,2,m009,c006
+l023,Anatomie d'un test unitaire,Structure AAA mocking des dépendances et assertions expressives.,TEXTE,1,m010,c009
+l024,Frameworks de test et injection,JUnit/Jest/pytest injection de dépendances et configuration de mocks.,VIDEO,2,m010,c009
+l025,Stratégie de mocking,Mocks stubs fakes et spy : quand et comment les utiliser.,INTERACTIF,3,m010,c009
+l026,Tests d'intégration vs unitaires,Périmètre responsabilités et complémentarité dans la pyramide de tests.,TEXTE,1,m011,c009
+l027,Tests avec base de données,Test containers transactions de test et isolation des données.,VIDEO,2,m011,c009
+l028,Factory et Abstract Factory,Création d'objets sans couplage aux classes concrètes.,TEXTE,1,m012,c012
+l029,Builder et Fluent Interface,Construction step-by-step d'objets complexes avec validation.,VIDEO,2,m012,c012
+l030,Observer et Event Bus,Découplage via événements : publisher subscriber et event bus.,TEXTE,1,m013,c012
+l031,Strategy et injection de comportement,Algorithmes interchangeables et sélection dynamique de stratégie.,VIDEO,2,m013,c012
+l032,Ports et adaptateurs,Séparation du domaine de l'infrastructure via des interfaces.,TEXTE,1,m014,c010
+l033,Implémentation d'un adaptateur,Écriture d'un adaptateur concret et tests des ports.,VIDEO,2,m014,c010
+l034,Ubiquitous Language et glossaire,Construction d'un langage partagé métier-tech et son reflet dans le code.,TEXTE,1,m015,c020
+l035,Bounded Contexts et context map,Identification des frontières et relations entre contextes bornés.,VIDEO,2,m015,c020
+l036,Introduction à Docker,Daemon images layers et premier conteneur en ligne de commande.,TEXTE,1,m016,c016
+l037,Dockerfile et build d'images,Instructions Dockerfile couches et optimisation du cache de build.,VIDEO,2,m016,c016
+l038,Volumes et persistance,Bind mounts volumes nommés et stratégies de persistance des données.,INTERACTIF,3,m016,c016
+l039,Multi-stage builds,Réduction de la taille des images et séparation build/runtime.,TEXTE,1,m017,c016
+l040,Sécurité des images Docker,Utilisateurs non-root scan de vulnérabilités et images distroless.,VIDEO,2,m017,c016
+l041,Services et dépendances Compose,Déclaration de services réseaux et health checks dans docker-compose.yml.,TEXTE,1,m018,c016
+l042,Orchestration de profils Compose,Profils override et gestion des environnements avec Compose.,VIDEO,2,m018,c016
+l043,Architecture Kubernetes,Control plane worker nodes etcd et flux de déploiement.,TEXTE,1,m019,c016
+l044,Pods Deployments et Services,Ressources fondamentales de K8s et leur cycle de vie.,VIDEO,2,m019,c016
+l045,Ingress et exposition des services,Ingress controllers TLS termination et routage HTTP avancé.,SIMULATION,3,m019,c016
+l046,StatefulSets et stockage persistant,PVC PV Storage Classes et applications stateful sur K8s.,TEXTE,1,m020,c016
+l047,HPA et gestion des ressources,Horizontal Pod Autoscaler requests limits et Vertical Pod Autoscaler.,VIDEO,2,m020,c016
+l048,Anatomie d'un pipeline CI,Triggers jobs steps artefacts et parallélisation.,TEXTE,1,m021,c017
+l049,Tests dans le pipeline,Intégration des tests unitaires d'intégration et de couverture dans CI.,VIDEO,2,m021,c017
+l050,Stratégies de déploiement,Blue-green canary rolling update et feature flags.,TEXTE,1,m022,c017
+l051,GitOps et déploiement déclaratif,ArgoCD Flux et la réconciliation de l'état déclaratif.,VIDEO,2,m022,c017
+l052,Métriques et instrumentation,Types de métriques Prometheus et exposition des endpoints.,TEXTE,1,m023,c018
+l053,Logs structurés et agrégation,JSON logging corrélation par trace ID et stack ELK/Loki.,VIDEO,2,m023,c018
+l054,Tableaux de bord et alertes,Grafana dashboards alertmanager et runbooks.,INTERACTIF,3,m023,c018
+l055,SLO SLA et error budgets,Définition des objectifs de service et calcul des budgets d'erreur.,TEXTE,1,m024,c018
+l056,Postmortems et culture blameless,Processus de revue d'incident et amélioration continue.,VIDEO,2,m024,c018
+l057,OWASP Top 10,Analyse des 10 vulnérabilités les plus critiques avec exemples concrets.,TEXTE,1,m025,c015
+l058,Modélisation des menaces,STRIDE DREAD et création d'un threat model pour une application.,VIDEO,2,m025,c015
+l059,OAuth 2.0 et OpenID Connect,Flux authorization code PKCE et JWT en pratique.,TEXTE,1,m026,c015
+l060,RBAC et gestion des permissions,Modèles d'autorisation rôles attributs et politiques d'accès.,VIDEO,2,m026,c015
+l061,SAST et analyse statique,Intégration de SonarQube CodeQL et gestion des faux positifs.,TEXTE,1,m027,c015
+l062,DAST et tests dynamiques,OWASP ZAP scans automatisés et intégration dans le pipeline.,VIDEO,2,m027,c017
+l063,CAP Theorem en profondeur,Preuve intuitive scénarios de partition et implications pour la conception.,TEXTE,1,m028,c007
+l064,Cohérence éventuelle vs forte,Modèles de cohérence : linearisabilité causalité et monotonic reads.,VIDEO,2,m028,c007
+l065,Algorithme Raft,Leader election log replication et snapshots dans Raft.,TEXTE,1,m029,c008
+l066,Paxos et ses variantes,Protocole Paxos Multi-Paxos et comparaison avec Raft.,VIDEO,2,m029,c008
+l067,Event Sourcing,Stocker les événements comme source de vérité et reconstruire l'état.,TEXTE,1,m030,c010
+l068,CQRS et séparation des lectures,Séparer commandes et requêtes pour scaler indépendamment.,VIDEO,2,m030,c010
+l069,Context Mapping avancé,Patterns ACL OHS partnership et shared kernel avec exemples.,TEXTE,1,m031,c020
+l070,Anti-Corruption Layer,Conception et implémentation d'une ACL entre deux contextes.,VIDEO,2,m031,c020
+l071,Agrégats et invariants,Définition des frontières d'agrégat garants de la cohérence transactionnelle.,TEXTE,1,m032,c020
+l072,Value Objects et entités,Distinction VO/entité immuabilité et égalité structurelle.,VIDEO,2,m032,c020
+l073,Facilitation d'un Event Storming,Rôle du facilitateur déroulement et artefacts produits.,TEXTE,1,m033,c020
+l074,De l'Event Storming au code,Traduction des événements en agrégats commandes et domain events.,SIMULATION,2,m033,c020
+l075,Circuit Breaker pattern,États closed open half-open et configuration des seuils.,TEXTE,1,m034,c018
+l076,Retry et backoff exponentiel,Stratégies de retry jitter et intégration avec Resilience4j/Polly.,VIDEO,2,m034,c018
+l077,Instrumentation OpenTelemetry,SDK traces spans attributs et export vers Jaeger ou Tempo.,TEXTE,1,m035,c018
+l078,Analyse de traces distribuées,Lecture d'une trace multi-services identification des latences anormales.,VIDEO,2,m035,c018
+l079,Principes du Chaos Engineering,Hypothèses expériences gamedays et outils Chaos Monkey/Litmus.,TEXTE,1,m036,c018
+l080,Mise en pratique d'une expérience chaos,Conception d'une expérience de résilience et analyse des résultats.,SIMULATION,2,m036,c018

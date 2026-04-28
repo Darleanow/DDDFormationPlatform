@@ -1,0 +1,10 @@
+id,nom,description,ordre,programmeId
+cr001,Fondamentaux de la programmation,Bases du langage et concepts essentiels à tout développeur.,1,p001
+cr002,Programmation concurrente,Threads synchronisation et patterns de concurrence pour des applications robustes.,2,p001
+cr003,Qualité et architecture logicielle,Tests design patterns et architecture pour des systèmes maintenables.,3,p001
+cr004,Conteneurisation et orchestration,Docker Kubernetes et patterns de déploiement pour des livraisons fiables.,1,p002
+cr005,Intégration et déploiement continus,Pipelines CI/CD monitoring et pratiques SRE pour une fiabilité opérationnelle.,2,p002
+cr006,Sécurité et conformité DevSecOps,Intégrer la sécurité dans chaque étape du cycle de développement.,3,p002
+cr007,Fondamentaux des systèmes distribués,CAP theorem consensus et patterns de base pour les systèmes à grande échelle.,1,p003
+cr008,Modélisation et DDD avancé,Domain-Driven Design appliqué à la conception de systèmes complexes multi-équipes.,2,p003
+cr009,Fiabilité et observabilité,Conception pour la résilience : circuit breakers tracing distribué et SLO/SLA.,3,p003

@@ -22,5 +22,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "types": ["node", "jest"]
+  },
+  "paths": {
+    "@modules/*": ["src/modules/*"],
+    "@shared/*": ["src/shared-kernel/*"]
   }
 }
