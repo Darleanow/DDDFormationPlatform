@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Learner } from '../../domain/aggregates/apprenant.aggregate';
-import type { ILearnerRepository } from '../../domain/repositories/apprenant.repository.interface';
-import { LearnerEntity } from '../persistence/entities/apprenant.entity';
+import { Learner } from '../../domain/aggregates/learner.aggregate';
+import type { ILearnerRepository } from '../../domain/repositories/learner.repository.interface';
+import { LearnerEntity } from '../entities/learner.entity';
 
 @Injectable()
 export class TypeOrmLearnerRepository implements ILearnerRepository {

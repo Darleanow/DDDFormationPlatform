@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Tenant, type TenantBusinessRules } from '../../domain/aggregates/tenant.aggregate';
+import {
+  Tenant,
+  type TenantBusinessRules,
+} from '../../domain/aggregates/tenant.aggregate';
 import type { ITenantRepository } from '../../domain/repositories/tenant.repository.interface';
 import { TENANT_REPOSITORY } from '../../domain/repositories/tenant.repository.interface';
 import { TenantEntity } from '../entities/tenant.entity';

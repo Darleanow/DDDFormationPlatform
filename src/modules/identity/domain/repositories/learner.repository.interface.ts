@@ -1,4 +1,4 @@
-import type { Learner } from '../aggregates/apprenant.aggregate';
+import type { Learner } from '../aggregates/learner.aggregate';
 
 export interface ILearnerRepository {
   findById(id: string): Promise<Learner | null>;

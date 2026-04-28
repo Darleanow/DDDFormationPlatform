@@ -1,4 +1,4 @@
-import type { Enrollment } from '../aggregates/inscription.aggregate';
+import type { Enrollment } from '../aggregates/enrollment.aggregate';
 
 export interface IEnrollmentRepository {
   findById(id: string): Promise<Enrollment | null>;
