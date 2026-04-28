@@ -8,7 +8,7 @@ import { IDelivranceRepository } from '../../domain/repositories/delivrance.repo
 import { Certification } from '../../domain/entities/certification.entity';
 import { RegleObtention } from '../../domain/entities/regle-obtention.entity';
 import { ValidationCompetence } from '../../domain/value-objects/validation-competence.value-object';
-import { CompetenceId } from '../../../../shared-kernel/competence-id';
+import { CompetenceId } from '../../../../shared/competence-id';
 import { ScoreGlobalInsuffisantException } from '../../domain/exceptions/score-global-insuffisant.exception';
 
 describe('VerifierEligibiliteEtDelivrerHandler', () => {

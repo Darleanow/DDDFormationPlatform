@@ -1,4 +1,4 @@
-import { CompetenceId } from '../../../../shared-kernel/competence-id';
+import { CompetenceId } from '../../../../shared/competence-id';
 
 /**
  * Value Object représentant la validation (ou l'échec) d'une compétence pour un apprenant donné.

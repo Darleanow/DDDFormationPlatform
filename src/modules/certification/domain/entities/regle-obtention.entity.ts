@@ -1,4 +1,4 @@
-import { CompetenceId } from '../../../../shared-kernel/competence-id';
+import { CompetenceId } from '../../../../shared/competence-id';
 
 /**
  * Value Object (ou Entité) décrivant les critères stricts pour l'obtention d'une certification.

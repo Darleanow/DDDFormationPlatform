@@ -1,7 +1,7 @@
 import { RuleEngineService } from './rule-engine.service';
 import { RegleObtention } from '../entities/regle-obtention.entity';
 import { ValidationCompetence } from '../value-objects/validation-competence.value-object';
-import { CompetenceId } from '../../../../shared-kernel/competence-id';
+import { CompetenceId } from '../../../../shared/competence-id';
 import { CompetenceCritiqueEnEchecException } from '../exceptions/competence-critique-en-echec.exception';
 import { ScoreGlobalInsuffisantException } from '../exceptions/score-global-insuffisant.exception';
 import { CompetenceObligatoireManquanteException } from '../exceptions/competence-obligatoire-manquante.exception';
