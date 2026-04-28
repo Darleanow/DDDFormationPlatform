@@ -25,40 +25,49 @@ export class AssessmentResultHandler {
     const path = await this.repo.findByLearnerId(payload.learnerId);
     if (!path) return;
 
-    // ACL: translates BC4 Assessment payload into BC3's EstimatedLevel
+    // 1. Mark the assessed activity as done (aggregate method preserves encapsulation)
+    path.markCurrentActivityCompleted();
+
+    // 2. ACL: translate BC4 payload → BC3's EstimatedLevel
     const level = this.acl.translateResult(payload);
     path.updateLevel(level);
 
-    // Remédiation ou accélération — mutuellement exclusifs
-    const remediated = this.remediation.applyIfNeeded(path, level, {
-      contentId: payload.remediationContentId,
-      estimatedHours: payload.remediationHours,
-    });
+    if (path.checkCompletionStatus()) {
+      // ── Path is complete: aggregate scores and emit domain event ───────────
+      path.completePath();
+    } else {
+      // ── Normal adaptive flow: remédiation / accélération / contraintes ─────
 
-    if (!remediated) {
-      this.acceleration.applyIfEligible(path, level);
-    }
-
-    // Re-evaluate constraints after path mutation
-    const result = this.solver.solve(path);
-    if (!result.feasible) {
-      this.solver.prioritizeMandatory(path);
-      const failureResult = result as { feasible: false; alertMessage: string; uncoveredCompetences: string[] };
-      this.eventEmitter.emit('adaptive.coverage.alert', {
-        learnerId: payload.learnerId,
-        pathId: path.id,
-        alertMessage: failureResult.alertMessage,
-        uncoveredCompetences: failureResult.uncoveredCompetences,
+      // Remédiation ou accélération — mutuellement exclusifs
+      const remediated = this.remediation.applyIfNeeded(path, level, {
+        contentId: payload.remediationContentId,
+        estimatedHours: payload.remediationHours,
       });
+
+      if (!remediated) {
+        this.acceleration.applyIfEligible(path, level);
+      }
+
+      // Re-evaluate constraints after path mutation
+      const result = this.solver.solve(path);
+      if (!result.feasible) {
+        this.solver.prioritizeMandatory(path);
+        const failureResult = result as { feasible: false; alertMessage: string; uncoveredCompetences: string[] };
+        this.eventEmitter.emit('adaptive.coverage.alert', {
+          learnerId: payload.learnerId,
+          pathId: path.id,
+          alertMessage: failureResult.alertMessage,
+          uncoveredCompetences: failureResult.uncoveredCompetences,
+        });
+      }
     }
 
     await this.repo.save(path);
 
-    // Dispatch all domain events accumulated during path mutation
+    // Dispatch all domain events (PathUpdatedEvent, RemediationTriggeredEvent,
+    // LearningPathCompletedEvent, ...) accumulated during this transaction
     for (const domainEvent of path.pullDomainEvents()) {
-      const eventName = domainEvent.constructor.name;
-      this.eventEmitter.emit(eventName, domainEvent);
+      this.eventEmitter.emit(domainEvent.constructor.name, domainEvent);
     }
   }
 }
-

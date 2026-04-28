@@ -33,6 +33,7 @@ export class EnrollmentConfirmedHandler {
       learnerId: event.learnerId,
       tenantId: event.tenantId,
       constraint,
+      targetCertificationId: event.targetCertificationId,
     });
 
     this.sequencing.buildInitialSequence(path, event.catalogActivities);
