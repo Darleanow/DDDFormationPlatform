@@ -119,20 +119,26 @@ import { EventEmitterAdaptiveEngineGateway } from './infrastructure/integration/
 			useFactory: (
 				interpretResult: InterpretAssessmentResultUseCase,
 				attempts: AssessmentAttemptRepository,
+				assessments: AssessmentRepository,
 				adaptiveEngine: AdaptiveEngineGateway,
 				anomalyDetector: BehavioralAnomalyDetector,
+				eventEmitter: EventEmitter2,
 			) =>
 				new ProcessAssessmentAttemptUseCase(
 					interpretResult,
 					attempts,
+					assessments,
 					adaptiveEngine,
 					anomalyDetector,
+					eventEmitter,
 				),
 			inject: [
 				InterpretAssessmentResultUseCase,
 				ASSESSMENT_ATTEMPT_REPOSITORY,
+				ASSESSMENT_REPOSITORY,
 				ADAPTIVE_ENGINE_GATEWAY,
 				BehavioralAnomalyDetector,
+				EventEmitter2,
 			],
 		},
 	],

@@ -4,10 +4,13 @@ import {
   ManualReviewStatus,
 } from '../../domain/aggregates/assessment/assessment-attempt';
 import { AssessmentAttemptRepository } from '../../domain/repositories/assessment-attempt-repository';
+import { AssessmentRepository } from '../../domain/repositories/assessment-repository';
 import { BehavioralAnomalyDetector } from '../../domain/services/behavioral-anomaly-detector';
 import { AssessmentItemResult } from '../../domain/services/score-calculator';
 import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
+import { CertificativeAssessmentScoredEvent } from '../../domain/events/certificative-assessment-scored.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 export interface ProcessAssessmentAttemptInput {
   learnerId: string;
@@ -39,8 +42,10 @@ export class ProcessAssessmentAttemptUseCase {
   constructor(
     private readonly interpretResult: InterpretAssessmentResultUseCase,
     private readonly attempts: AssessmentAttemptRepository,
+    private readonly assessments: AssessmentRepository,
     private readonly adaptiveEngine: AdaptiveEngineGateway,
     private readonly anomalyDetector: BehavioralAnomalyDetector,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(
@@ -68,7 +73,30 @@ export class ProcessAssessmentAttemptUseCase {
 
     await this.attempts.save(attempt);
 
-    if (!anomaly) {
+    const assessment = await this.assessments.findById(input.assessmentId);
+
+    if (assessment?.getType() === 'CERTIFICATIVE' && assessment.getTargetCertificationId()) {
+      const isSuspect = !!anomaly;
+      // In this system, we might only have one competence target, or many. We extract what we can.
+      const targetCertId = assessment.getTargetCertificationId()!;
+      // Publish event
+      const event = new CertificativeAssessmentScoredEvent(
+        attempt.getId(),
+        input.assessmentId,
+        input.learnerId,
+        targetCertId,
+        interpretationResult.interpretation.score.value, // globalscore
+        [
+          { 
+            competenceId: interpretationResult.competenceId, 
+            score: interpretationResult.interpretation.interpretedScore 
+          }
+        ],
+        isSuspect,
+      );
+      this.eventEmitter.emit(event.constructor.name, event);
+    } else if (!anomaly) {
+      // Formative -> report to adaptive
       await this.adaptiveEngine.submitScore({
         learnerId: attempt.getLearnerId(),
         competenceId: interpretationResult.competenceId,
