@@ -5,7 +5,7 @@ import { EstimatedLevelDifficultyPolicy } from '../policies/estimated-level-diff
 
 export interface GenerateAssessmentInput {
   assessmentId: string;
-  skillId: string;
+  competenceId: string;
   estimatedLevel: string;
   tenantId?: string;
 }
@@ -31,7 +31,9 @@ export class GenerateAssessmentUseCase {
   async execute(
     input: GenerateAssessmentInput,
   ): Promise<GenerateAssessmentResult> {
-    const availableItems = await this.items.findBySkillId(input.skillId);
+    const availableItems = await this.items.findByCompetenceId(
+      input.competenceId,
+    );
     const difficultyRange = this.difficultyPolicy.getRangeFor(
       input.estimatedLevel,
     );
@@ -44,7 +46,11 @@ export class GenerateAssessmentUseCase {
       throw new Error('No assessment items available for the estimated level');
     }
 
-    const assessment = new Assessment(input.assessmentId, selectedItems);
+    const assessment = new Assessment(
+      input.assessmentId,
+      input.competenceId,
+      selectedItems,
+    );
     await this.assessments.save(assessment);
 
     return {

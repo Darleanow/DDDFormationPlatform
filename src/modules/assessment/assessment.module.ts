@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import {
 	ADAPTIVE_ENGINE_GATEWAY,
@@ -29,13 +30,14 @@ import {
 	ASSESSMENT_REPOSITORY,
 	AssessmentRepository,
 } from './domain/repositories/assessment-repository';
-import { NoopAdaptiveEngineGateway } from './infrastructure/integration/noop-adaptive-engine.gateway';
+import { EventEmitterAdaptiveEngineGateway } from './infrastructure/integration/event-emitter-adaptive-engine.gateway';
 import { InMemoryAssessmentAttemptRepository } from './infrastructure/persistence/in-memory/in-memory-assessment-attempt.repository';
 import { InMemoryAssessmentItemRepository } from './infrastructure/persistence/in-memory/in-memory-assessment-item.repository';
 import { InMemoryAssessmentRepository } from './infrastructure/persistence/in-memory/in-memory-assessment.repository';
 import { AssessmentController } from './presentation/controllers/assessment.controller';
 
 @Module({
+	imports: [EventEmitterModule],
 	controllers: [AssessmentController],
 	providers: [
 		{
@@ -52,7 +54,7 @@ import { AssessmentController } from './presentation/controllers/assessment.cont
 		},
 		{
 			provide: ADAPTIVE_ENGINE_GATEWAY,
-			useClass: NoopAdaptiveEngineGateway,
+			useClass: EventEmitterAdaptiveEngineGateway,
 		},
 		{
 			provide: ESTIMATED_LEVEL_DIFFICULTY_POLICY,

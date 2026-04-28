@@ -14,10 +14,10 @@ describe('InterpretAssessmentResultUseCase', () => {
     );
 
     const items = [
-      new AssessmentItem('item-1', 'skill-1', 0.2, 1),
-      new AssessmentItem('item-2', 'skill-1', 0.8, 1),
+      new AssessmentItem('item-1', 'competence-1', 0.2, 1),
+      new AssessmentItem('item-2', 'competence-1', 0.8, 1),
     ];
-    const assessment = new Assessment('assessment-1', items);
+    const assessment = new Assessment('assessment-1', 'competence-1', items);
     await assessmentRepository.save(assessment);
 
     const result = await useCase.execute({
@@ -32,5 +32,6 @@ describe('InterpretAssessmentResultUseCase', () => {
     expect(result.interpretation.averageDifficulty).toBeCloseTo(0.5, 4);
     expect(result.interpretation.answerConsistency).toBe(1);
     expect(result.interpretation.interpretedScore).toBeCloseTo(1.5, 4);
+    expect(result.interpretation.estimatedLevel).toBeCloseTo(0.75, 4);
   });
 });

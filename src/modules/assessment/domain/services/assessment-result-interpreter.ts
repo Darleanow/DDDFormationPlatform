@@ -8,6 +8,7 @@ import { Score } from '../value-objects/score';
 export interface AssessmentResultInterpretation {
   score: Score;
   interpretedScore: number;
+  estimatedLevel: number;
   averageDifficulty: number;
   answerConsistency: number;
 }
@@ -27,13 +28,34 @@ export class AssessmentResultInterpreter {
     const difficultyFactor = 0.5 + 0.5 * averageDifficulty;
     const consistencyFactor = 0.5 + 0.5 * answerConsistency;
     const interpretedScore = score.value * difficultyFactor * consistencyFactor;
+    const estimatedLevel = this.normalizeEstimatedLevel(
+      interpretedScore,
+      items,
+    );
 
     return {
       score,
       interpretedScore,
+      estimatedLevel,
       averageDifficulty,
       answerConsistency,
     };
+  }
+
+  private normalizeEstimatedLevel(
+    interpretedScore: number,
+    items: AssessmentItem[],
+  ): number {
+    const maxScore = items.reduce((sum, item) => sum + item.getWeight(), 0);
+
+    if (maxScore <= 0) {
+      return 0;
+    }
+
+    // TODO: revisit normalization rules for estimated level with domain experts.
+    const normalized = interpretedScore / maxScore;
+
+    return Math.min(1, Math.max(0, normalized));
   }
 
   private calculateSignals(

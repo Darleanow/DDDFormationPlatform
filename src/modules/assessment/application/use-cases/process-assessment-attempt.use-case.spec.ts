@@ -14,9 +14,21 @@ import { AssessmentResultInterpreter } from '../../domain/services/assessment-re
 
 class FakeAdaptiveEngineGateway implements AdaptiveEngineGateway {
   submitted = false;
+  payload?: {
+    learnerId: string;
+    competenceId: string;
+    estimatedLevel: number;
+    tenantId?: string;
+  };
 
-  async submitScore(): Promise<void> {
+  async submitScore(input: {
+    learnerId: string;
+    competenceId: string;
+    estimatedLevel: number;
+    tenantId?: string;
+  }): Promise<void> {
     this.submitted = true;
+    this.payload = input;
   }
 }
 
@@ -33,10 +45,10 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     });
 
     const items = [
-      new AssessmentItem('item-1', 'skill-1', 0.5, 1),
-      new AssessmentItem('item-2', 'skill-1', 0.6, 1),
+      new AssessmentItem('item-1', 'competence-1', 0.5, 1),
+      new AssessmentItem('item-2', 'competence-1', 0.6, 1),
     ];
-    const assessment = new Assessment('assessment-1', items);
+    const assessment = new Assessment('assessment-1', 'competence-1', items);
     await assessmentRepository.save(assessment);
 
     const interpreter = new AssessmentResultInterpreter();
@@ -54,6 +66,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const result = await useCase.execute({
       assessmentId: 'assessment-1',
       attemptId: 'attempt-1',
+      learnerId: 'learner-1',
       questionCount: 20,
       durationSeconds: 40,
       itemResults: [
@@ -80,10 +93,10 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     });
 
     const items = [
-      new AssessmentItem('item-1', 'skill-1', 0.5, 1),
-      new AssessmentItem('item-2', 'skill-1', 0.6, 1),
+      new AssessmentItem('item-1', 'competence-1', 0.5, 1),
+      new AssessmentItem('item-2', 'competence-1', 0.6, 1),
     ];
-    const assessment = new Assessment('assessment-2', items);
+    const assessment = new Assessment('assessment-2', 'competence-1', items);
     await assessmentRepository.save(assessment);
 
     const interpreter = new AssessmentResultInterpreter();
@@ -101,6 +114,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const result = await useCase.execute({
       assessmentId: 'assessment-2',
       attemptId: 'attempt-2',
+      learnerId: 'learner-2',
       questionCount: 20,
       durationSeconds: 60,
       itemResults: [
@@ -113,5 +127,10 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     expect(result.manualReviewStatus).toBe(ManualReviewStatus.NOT_REQUIRED);
     expect(result.requiresManualValidation).toBe(false);
     expect(adaptiveGateway.submitted).toBe(true);
+    expect(adaptiveGateway.payload).toBeDefined();
+    expect(adaptiveGateway.payload?.learnerId).toBe('learner-2');
+    expect(adaptiveGateway.payload?.competenceId).toBe('competence-1');
+    expect(adaptiveGateway.payload?.estimatedLevel).toBeGreaterThanOrEqual(0);
+    expect(adaptiveGateway.payload?.estimatedLevel).toBeLessThanOrEqual(1);
   });
 });

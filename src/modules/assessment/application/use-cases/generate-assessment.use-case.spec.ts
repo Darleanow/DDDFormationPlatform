@@ -8,14 +8,14 @@ import { AssessmentItem } from '../../domain/aggregates/assessment/assessment-it
 describe('GenerateAssessmentUseCase', () => {
   it('selects items within the intermediate difficulty range', async () => {
     const items = [
-      new AssessmentItem('item-1', 'skill-1', 0.2, 1),
-      new AssessmentItem('item-2', 'skill-1', 0.5, 1),
-      new AssessmentItem('item-3', 'skill-1', 0.7, 1),
-      new AssessmentItem('item-4', 'skill-1', 0.95, 1),
+      new AssessmentItem('item-1', 'competence-1', 0.2, 1),
+      new AssessmentItem('item-2', 'competence-1', 0.5, 1),
+      new AssessmentItem('item-3', 'competence-1', 0.7, 1),
+      new AssessmentItem('item-4', 'competence-1', 0.95, 1),
     ];
 
     const itemRepository = new InMemoryAssessmentItemRepository({
-      'skill-1': items,
+      'competence-1': items,
     });
     const assessmentRepository = new InMemoryAssessmentRepository();
     const difficultyPolicy = new StaticEstimatedLevelDifficultyPolicy({
@@ -30,7 +30,7 @@ describe('GenerateAssessmentUseCase', () => {
 
     const result = await useCase.execute({
       assessmentId: 'assessment-1',
-      skillId: 'skill-1',
+      competenceId: 'competence-1',
       estimatedLevel: 'intermediaire',
     });
 

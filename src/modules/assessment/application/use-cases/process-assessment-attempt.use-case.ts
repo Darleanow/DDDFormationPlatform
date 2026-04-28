@@ -12,6 +12,7 @@ import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.
 export interface ProcessAssessmentAttemptInput {
   assessmentId: string;
   attemptId: string;
+  learnerId: string;
   questionCount: number;
   durationSeconds: number;
   itemResults: AssessmentItemResult[];
@@ -21,8 +22,11 @@ export interface ProcessAssessmentAttemptInput {
 export interface ProcessAssessmentAttemptResult {
   assessmentId: string;
   attemptId: string;
+  learnerId: string;
+  competenceId: string;
   score: number;
   interpretedScore: number;
+  estimatedLevel: number;
   averageDifficulty: number;
   answerConsistency: number;
   status: AssessmentAttemptStatus;
@@ -53,6 +57,7 @@ export class ProcessAssessmentAttemptUseCase {
     const attempt = new AssessmentAttempt(
       input.attemptId,
       interpretationResult.assessmentId,
+      input.learnerId,
       input.questionCount,
       input.durationSeconds,
     );
@@ -68,9 +73,9 @@ export class ProcessAssessmentAttemptUseCase {
 
     if (!anomaly) {
       await this.adaptiveEngine.submitScore({
-        assessmentId: interpretationResult.assessmentId,
-        attemptId: attempt.getId(),
-        score: interpretationResult.interpretation.score.value,
+        learnerId: input.learnerId,
+        competenceId: interpretationResult.competenceId,
+        estimatedLevel: interpretationResult.interpretation.estimatedLevel,
         tenantId: input.tenantId,
       });
     }
@@ -78,8 +83,11 @@ export class ProcessAssessmentAttemptUseCase {
     return {
       assessmentId: interpretationResult.assessmentId,
       attemptId: attempt.getId(),
+      learnerId: input.learnerId,
+      competenceId: interpretationResult.competenceId,
       score: interpretationResult.interpretation.score.value,
       interpretedScore: interpretationResult.interpretation.interpretedScore,
+      estimatedLevel: interpretationResult.interpretation.estimatedLevel,
       averageDifficulty: interpretationResult.interpretation.averageDifficulty,
       answerConsistency: interpretationResult.interpretation.answerConsistency,
       status: attempt.getStatus(),

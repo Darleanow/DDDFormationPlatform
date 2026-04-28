@@ -20,6 +20,7 @@ export class AssessmentAttempt {
   constructor(
     private readonly id: string,
     private readonly assessmentId: string,
+    private readonly learnerId: string,
     private readonly questionCount: number,
     private readonly durationSeconds: number,
   ) {
@@ -41,6 +42,10 @@ export class AssessmentAttempt {
 
   getAssessmentId(): string {
     return this.assessmentId;
+  }
+
+  getLearnerId(): string {
+    return this.learnerId;
   }
 
   getQuestionCount(): number {

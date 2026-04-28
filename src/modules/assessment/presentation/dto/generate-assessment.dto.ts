@@ -1,6 +1,6 @@
 export class GenerateAssessmentDto {
   assessmentId!: string;
-  skillId!: string;
+  competenceId!: string;
   estimatedLevel!: string;
   tenantId?: string;
 }
