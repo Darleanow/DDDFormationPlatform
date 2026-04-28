@@ -33,6 +33,12 @@ export class Exercice {
   @Column({ type: 'int' })
   ordre: number;
 
+  @Column({ type: 'float', default: 0.5 })
+  difficulty: number;
+
+  @Column({ type: 'int', default: 1 })
+  weight: number;
+
   @Exclude()
   @ManyToOne(() => Lecon, (lecon) => lecon.exercices, {
     onDelete: 'CASCADE',

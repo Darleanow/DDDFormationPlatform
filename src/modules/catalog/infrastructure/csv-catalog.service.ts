@@ -128,6 +128,8 @@ export class CsvCatalogService implements OnModuleInit {
             e.description = raw.description;
             e.enonce = raw.enonce;
             e.ordre = parseInt(raw.ordre, 10);
+            e.difficulty = raw.difficulty ? parseFloat(raw.difficulty) : 0.5;
+            e.weight = raw.weight ? parseInt(raw.weight, 10) : 1;
             
             const lecon = this.lecons.find(l => l.moduleId === raw.moduleId);
             if (lecon) {
