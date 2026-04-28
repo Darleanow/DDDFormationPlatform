@@ -26,7 +26,7 @@ describe('LearningPathMapper', () => {
     const ormEntity = LearningPathMapper.toOrm(path);
     expect(ormEntity.mandatoryCompetencyIds).toEqual(['c1']);
     expect(ormEntity.estimatedLevels).toEqual([
-      { competenceId: 'c1', score: 0.6 },
+      { competencyId: 'c1', score: 0.6 },
     ]);
     expect(ormEntity.activities).toHaveLength(1);
 

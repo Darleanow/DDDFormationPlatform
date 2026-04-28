@@ -167,8 +167,8 @@ describe('LearningPath – completePath()', () => {
     path.completePath();
 
     const [event] = path.pullDomainEvents() as LearningPathCompletedEvent[];
-    expect(event.competenceResults).toHaveLength(2);
-    expect(event.competenceResults.map(c => c.competenceId)).toEqual(
+    expect(event.competencyResults).toHaveLength(2);
+    expect(event.competencyResults.map((c) => c.competencyId)).toEqual(
       expect.arrayContaining(['c1', 'c2']),
     );
   });
@@ -184,8 +184,8 @@ describe('LearningPath – completePath()', () => {
     path.completePath();
 
     const [event] = path.pullDomainEvents() as LearningPathCompletedEvent[];
-    const c1 = event.competenceResults.find((c) => c.competenceId === 'c1')!;
-    const c2 = event.competenceResults.find((c) => c.competenceId === 'c2')!;
+    const c1 = event.competencyResults.find((c) => c.competencyId === 'c1')!;
+    const c2 = event.competencyResults.find((c) => c.competencyId === 'c2')!;
     expect(c1.score).toBe(0.8);
     expect(c2.score).toBe(0.45);
   });

@@ -1,10 +1,9 @@
 import { DifficultyRange } from '../../domain/value-objects/difficulty-range';
 
-export const ESTIMATED_LEVEL_DIFFICULTY_POLICY = Symbol(
-  'ESTIMATED_LEVEL_DIFFICULTY_POLICY',
-);
+export const ADAPTIVE_DIFFICULTY_SERVICE = Symbol('ADAPTIVE_DIFFICULTY_SERVICE');
 
-export interface EstimatedLevelDifficultyPolicy {
+/** BC4 — Maps learner estimated level to item difficulty band (spec: AdaptiveDifficultyService). */
+export interface AdaptiveDifficultyService {
   getRangeFor(estimatedLevel: string): DifficultyRange;
 }
 
@@ -15,9 +14,7 @@ const normalizeEstimatedLevel = (level: string): string =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 
-export class StaticEstimatedLevelDifficultyPolicy
-  implements EstimatedLevelDifficultyPolicy
-{
+export class StaticAdaptiveDifficultyService implements AdaptiveDifficultyService {
   constructor(private readonly ranges: Record<string, DifficultyRange>) {}
 
   getRangeFor(estimatedLevel: string): DifficultyRange {

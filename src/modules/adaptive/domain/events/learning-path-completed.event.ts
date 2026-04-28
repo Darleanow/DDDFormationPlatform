@@ -23,7 +23,7 @@ export class LearningPathCompletedEvent {
 
     /**
      * Per-competence estimated scores (0–1 from BC4/BC3). Certification rules (including
-     * {@link IssuanceRule#criticalCompetencies}) are applied only in BC5.
+     * issuance rules including critical competency checks) are applied only in BC5.
      */
     public readonly competencyResults: Array<{
       competencyId: string;

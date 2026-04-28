@@ -1,8 +1,6 @@
 import { AssessmentRepository } from '../../domain/repositories/assessment-repository';
-import {
-  AssessmentItemResult,
-  ScoreCalculator,
-} from '../../domain/services/score-calculator';
+import { AssessmentItemResult } from '../../domain/services/score-calculator';
+import { ScoringService } from '../../domain/services/scoring.service';
 import { Score } from '../../domain/value-objects/score';
 
 export interface CalculateScoreInput {
@@ -24,7 +22,7 @@ export class CalculateScoreUseCase {
       throw new Error('Assessment not found');
     }
 
-    const score = ScoreCalculator.calculate(
+    const score = ScoringService.calculate(
       assessment.getItems(),
       input.itemResults,
     );
