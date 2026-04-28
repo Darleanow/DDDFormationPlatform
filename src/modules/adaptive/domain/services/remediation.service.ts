@@ -5,7 +5,7 @@ import { EstimatedLevel } from '../value-objects/estimated-level.vo';
 
 export class RemediationService {
   /**
-   * Evaluates if a remediation is necessary and adds it 
+   * Evaluates if a remediation is necessary and adds it
    */
   applyIfNeeded(
     path: LearningPath,

@@ -27,7 +27,13 @@ export class Recommendation {
     reason: RecommendationReason,
     coverageAtRisk: boolean,
   ): Recommendation {
-    return new Recommendation(learnerId, activity, reason, coverageAtRisk, new Date());
+    return new Recommendation(
+      learnerId,
+      activity,
+      reason,
+      coverageAtRisk,
+      new Date(),
+    );
   }
 
   static noActivityAvailable(learnerId: string): Recommendation {

@@ -17,8 +17,18 @@ describe('SequencingService', () => {
     const service = new SequencingService();
 
     service.buildInitialSequence(path, [
-      { contentId: 'content-1', competenceIds: ['c1'], estimatedHours: 2, type: 'LESSON' },
-      { contentId: 'content-2', competenceIds: ['c2'], estimatedHours: 1, type: 'EXERCISE' },
+      {
+        contentId: 'content-1',
+        competenceIds: ['c1'],
+        estimatedHours: 2,
+        type: 'LESSON',
+      },
+      {
+        contentId: 'content-2',
+        competenceIds: ['c2'],
+        estimatedHours: 1,
+        type: 'EXERCISE',
+      },
     ]);
 
     const activities = path.getActivities();

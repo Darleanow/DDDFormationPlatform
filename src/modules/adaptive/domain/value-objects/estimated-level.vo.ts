@@ -5,8 +5,7 @@ export class EstimatedLevel {
   ) {}
 
   static from(competenceId: string, score: number): EstimatedLevel {
-    if (score < 0 || score > 1)
-      throw new Error(`Invalid score: ${score}`);
+    if (score < 0 || score > 1) throw new Error(`Invalid score: ${score}`);
     return new EstimatedLevel(competenceId, score);
   }
 

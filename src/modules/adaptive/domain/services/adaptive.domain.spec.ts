@@ -5,7 +5,10 @@ import { CoverageConstraint } from '../value-objects/coverage-constraint.vo';
 import { RemediationService } from './remediation.service';
 import { AccelerationService } from './acceleration.service';
 import { ConstraintSolverService } from './constraint-solver.service';
-import { AssessmentAcl, AssessmentResultPayload } from '../../infrastructure/acl/assessment-acl';
+import {
+  AssessmentAcl,
+  AssessmentResultPayload,
+} from '../../infrastructure/acl/assessment-acl';
 
 describe('Adaptive domain services', () => {
   describe('RemediationService', () => {
@@ -20,8 +23,26 @@ describe('Adaptive domain services', () => {
         }),
       });
 
-      path.addActivity(new Activity('activity-1', 'content-1', 'LESSON', ['algorithmique-recursive'], 2, 1));
-      path.addActivity(new Activity('activity-2', 'content-2', 'EXERCISE', ['algorithmique-recursive'], 2, 2));
+      path.addActivity(
+        new Activity(
+          'activity-1',
+          'content-1',
+          'LESSON',
+          ['algorithmique-recursive'],
+          2,
+          1,
+        ),
+      );
+      path.addActivity(
+        new Activity(
+          'activity-2',
+          'content-2',
+          'EXERCISE',
+          ['algorithmique-recursive'],
+          2,
+          2,
+        ),
+      );
 
       const service = new RemediationService();
       const level = EstimatedLevel.from('algorithmique-recursive', 0.4);
@@ -50,7 +71,9 @@ describe('Adaptive domain services', () => {
         }),
       });
 
-      path.addActivity(new Activity('activity-2', 'content-2', 'EXERCISE', ['c1'], 2, 1));
+      path.addActivity(
+        new Activity('activity-2', 'content-2', 'EXERCISE', ['c1'], 2, 1),
+      );
       const service = new RemediationService();
       const level = EstimatedLevel.from('c1', 0.75);
 
@@ -60,7 +83,11 @@ describe('Adaptive domain services', () => {
       });
 
       expect(result).toBe(false);
-      expect(path.getActivities().some(activity => activity.type === 'REMEDIATION')).toBe(false);
+      expect(
+        path
+          .getActivities()
+          .some((activity) => activity.type === 'REMEDIATION'),
+      ).toBe(false);
     });
   });
 
@@ -76,9 +103,36 @@ describe('Adaptive domain services', () => {
         }),
       });
 
-      path.addActivity(new Activity('activity-3', 'content-3', 'LESSON', ['algorithmique-recursive'], 1, 1));
-      path.addActivity(new Activity('activity-4', 'content-4', 'EXERCISE', ['algorithmique-recursive'], 1, 2));
-      path.addActivity(new Activity('activity-5', 'content-5', 'LESSON', ['programmation-fonctionnelle'], 2, 3));
+      path.addActivity(
+        new Activity(
+          'activity-3',
+          'content-3',
+          'LESSON',
+          ['algorithmique-recursive'],
+          1,
+          1,
+        ),
+      );
+      path.addActivity(
+        new Activity(
+          'activity-4',
+          'content-4',
+          'EXERCISE',
+          ['algorithmique-recursive'],
+          1,
+          2,
+        ),
+      );
+      path.addActivity(
+        new Activity(
+          'activity-5',
+          'content-5',
+          'LESSON',
+          ['programmation-fonctionnelle'],
+          2,
+          3,
+        ),
+      );
 
       const service = new AccelerationService();
       const level = EstimatedLevel.from('algorithmique-recursive', 0.92);
@@ -86,10 +140,13 @@ describe('Adaptive domain services', () => {
       const result = service.applyIfEligible(path, level);
 
       expect(result).toBe(true);
-      const skippedActivities = path.getActivities().filter(
-        activity => activity.getStatus().toString() === 'SKIPPED',
-      );
-      expect(skippedActivities.map(a => a.id)).toEqual(['activity-3', 'activity-4']);
+      const skippedActivities = path
+        .getActivities()
+        .filter((activity) => activity.getStatus().toString() === 'SKIPPED');
+      expect(skippedActivities.map((a) => a.id)).toEqual([
+        'activity-3',
+        'activity-4',
+      ]);
       const nextPending = path.getNextPendingActivity();
       expect(nextPending?.id).toBe('activity-5');
     });
@@ -109,14 +166,25 @@ describe('Adaptive domain services', () => {
         }),
       });
 
-      path.addActivity(new Activity('activity-5', 'content-5', 'LESSON', ['algorithmique-recursive'], 10, 1));
+      path.addActivity(
+        new Activity(
+          'activity-5',
+          'content-5',
+          'LESSON',
+          ['algorithmique-recursive'],
+          10,
+          1,
+        ),
+      );
       const service = new ConstraintSolverService();
 
       const result = service.solve(path);
 
       expect(result.feasible).toBe(false);
       if (!result.feasible) {
-        expect(result.uncoveredCompetences).toContain('algorithmique-recursive');
+        expect(result.uncoveredCompetences).toContain(
+          'algorithmique-recursive',
+        );
         expect(result.alertMessage).toContain('Skill uncovered');
       }
     });
@@ -134,12 +202,30 @@ describe('Adaptive domain services', () => {
         }),
       });
 
-      path.addActivity(new Activity('activity-6', 'content-6', 'LESSON', ['programmation-fonctionnelle'], 2, 1));
-      path.addActivity(new Activity('activity-7', 'content-7', 'EXERCISE', ['algorithmique-recursive'], 2, 2));
+      path.addActivity(
+        new Activity(
+          'activity-6',
+          'content-6',
+          'LESSON',
+          ['programmation-fonctionnelle'],
+          2,
+          1,
+        ),
+      );
+      path.addActivity(
+        new Activity(
+          'activity-7',
+          'content-7',
+          'EXERCISE',
+          ['algorithmique-recursive'],
+          2,
+          2,
+        ),
+      );
       const service = new ConstraintSolverService();
 
       service.prioritizeMandatory(path);
-      const orderedIds = path.getActivities().map(activity => activity.id);
+      const orderedIds = path.getActivities().map((activity) => activity.id);
       expect(orderedIds[0]).toBe('activity-7');
       expect(orderedIds[1]).toBe('activity-6');
     });

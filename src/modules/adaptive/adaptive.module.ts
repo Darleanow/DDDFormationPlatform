@@ -14,9 +14,9 @@ import { AdaptiveController } from './infrastructure/controller/adaptive.control
   imports: [],
   providers: [
     // Domain services — plain classes, no @Injectable needed, NestJS resolves via useClass
-    { provide: SequencingService,      useClass: SequencingService },
-    { provide: RemediationService,     useClass: RemediationService },
-    { provide: AccelerationService,    useClass: AccelerationService },
+    { provide: SequencingService, useClass: SequencingService },
+    { provide: RemediationService, useClass: RemediationService },
+    { provide: AccelerationService, useClass: AccelerationService },
     { provide: ConstraintSolverService, useClass: ConstraintSolverService },
 
     // Application handlers
@@ -36,4 +36,3 @@ import { AdaptiveController } from './infrastructure/controller/adaptive.control
   exports: [],
 })
 export class AdaptiveModule {}
-
