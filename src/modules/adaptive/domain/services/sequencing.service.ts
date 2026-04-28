@@ -4,7 +4,7 @@ import { Activity } from '../entities/activity.entity';
 
 export class SequencingService {
   /**
-   * Builds initial sequence from catalogue 
+   * Builds initial sequence from catalogue
    */
   buildInitialSequence(
     path: LearningPath,

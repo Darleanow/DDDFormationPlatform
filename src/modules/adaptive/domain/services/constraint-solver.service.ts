@@ -20,7 +20,7 @@ export class ConstraintSolverService {
   }
 
   /**
-   * Orders activities to prioritize skills 
+   * Orders activities to prioritize skills
    */
   prioritizeMandatory(path: LearningPath): void {
     const uncovered = new Set(path.getMandatoryUncoveredCompetences());
@@ -28,17 +28,17 @@ export class ConstraintSolverService {
 
     const activities = path.getActivities();
 
-    // Priority for activities covering must have skills 
+    // Priority for activities covering must have skills
     activities.sort((a, b) => {
-      const aIsMandatory = a.competenceIds.some(c => uncovered.has(c));
-      const bIsMandatory = b.competenceIds.some(c => uncovered.has(c));
+      const aIsMandatory = a.competenceIds.some((c) => uncovered.has(c));
+      const bIsMandatory = b.competenceIds.some((c) => uncovered.has(c));
       if (aIsMandatory && !bIsMandatory) return -1;
       if (!aIsMandatory && bIsMandatory) return 1;
       return a.order - b.order;
     });
 
     // Affects order
-    activities.forEach((a, i) => (a as any).order = i);
+    activities.forEach((a, i) => ((a as any).order = i));
     path.reorderActivities(activities);
   }
 }

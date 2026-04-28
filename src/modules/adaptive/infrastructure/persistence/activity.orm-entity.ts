@@ -6,9 +6,13 @@ export class ActivityOrmEntity {
   @PrimaryColumn('uuid')
   id: string;
 
-  @ManyToOne(() => LearningPathOrmEntity, learningPath => learningPath.activities, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => LearningPathOrmEntity,
+    (learningPath) => learningPath.activities,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'learning_path_id' })
   learningPath: LearningPathOrmEntity;
 

@@ -5,7 +5,10 @@ import { RemediationService } from '../../domain/services/remediation.service';
 import { AccelerationService } from '../../domain/services/acceleration.service';
 import { ConstraintSolverService } from '../../domain/services/constraint-solver.service';
 import { LearningPathRepository } from '../../domain/repositories/learning-path.repository';
-import { AssessmentAcl, AssessmentResultPayload } from '../../infrastructure/acl/assessment-acl';
+import {
+  AssessmentAcl,
+  AssessmentResultPayload,
+} from '../../infrastructure/acl/assessment-acl';
 
 export { AssessmentResultPayload };
 

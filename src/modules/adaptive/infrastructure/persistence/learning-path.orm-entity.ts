@@ -1,4 +1,10 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { ActivityOrmEntity } from './activity.orm-entity';
 
 @Entity({ schema: 'adaptive', name: 'learning_path' })
@@ -27,7 +33,7 @@ export class LearningPathOrmEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @OneToMany(() => ActivityOrmEntity, activity => activity.learningPath, {
+  @OneToMany(() => ActivityOrmEntity, (activity) => activity.learningPath, {
     cascade: true,
     eager: true,
   })

@@ -44,24 +44,29 @@ export class LearningPath {
 
   insertRemediationAfter(targetOrder: number, remediation: Activity): void {
     this.activities
-      .filter(a => a.order > targetOrder)
-      .forEach(a => (a as any).order += 1);
+      .filter((a) => a.order > targetOrder)
+      .forEach((a) => ((a as any).order += 1));
 
     this.activities.push(remediation);
     this.activities.sort((a, b) => a.order - b.order);
 
     this.domainEvents.push(
-      new RemediationTriggeredEvent(this.id, this.learnerId, remediation.competenceIds),
+      new RemediationTriggeredEvent(
+        this.id,
+        this.learnerId,
+        remediation.competenceIds,
+      ),
     );
   }
 
   skipActivitiesForCompetences(competenceIds: string[]): void {
     this.activities
-      .filter(a =>
-        a.isPending() &&
-        a.competenceIds.every(c => competenceIds.includes(c)),
+      .filter(
+        (a) =>
+          a.isPending() &&
+          a.competenceIds.every((c) => competenceIds.includes(c)),
       )
-      .forEach(a => a.skip());
+      .forEach((a) => a.skip());
 
     this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
   }
@@ -96,7 +101,7 @@ export class LearningPath {
 
   isCoverageFeasible(): boolean {
     const pendingHours = this.activities
-      .filter(a => a.isPending())
+      .filter((a) => a.isPending())
       .reduce((sum, a) => sum + a.estimatedHours, 0);
     return this.constraint.isFeasible(pendingHours);
   }
@@ -104,12 +109,12 @@ export class LearningPath {
   getMandatoryUncoveredCompetences(): string[] {
     const covered = new Set(
       this.activities
-        .filter(a => a.isCompleted())
-        .flatMap(a => a.competenceIds),
+        .filter((a) => a.isCompleted())
+        .flatMap((a) => a.competenceIds),
     );
     return this.constraint
       .getMandatoryCompetenceIds()
-      .filter(c => !covered.has(c));
+      .filter((c) => !covered.has(c));
   }
 
   // ── Completion ─────────────────────────────────────────────────────────────
@@ -173,7 +178,7 @@ export class LearningPath {
 
   getNextPendingActivity(): Activity | undefined {
     return this.activities
-      .filter(a => a.isPending())
+      .filter((a) => a.isPending())
       .sort((a, b) => a.order - b.order)[0];
   }
 
@@ -217,7 +222,9 @@ export class LearningPath {
     );
 
     path.activities = [...(props.activities ?? [])];
-    path.levels = new Map((props.levels ?? []).map(level => [level.getCompetenceId(), level]));
+    path.levels = new Map(
+      (props.levels ?? []).map((level) => [level.getCompetenceId(), level]),
+    );
     path.domainEvents = [];
     return path;
   }

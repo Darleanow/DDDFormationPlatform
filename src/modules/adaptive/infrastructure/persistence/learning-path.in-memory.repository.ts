@@ -22,7 +22,8 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
   async save(path: LearningPath): Promise<void> {
     this.store.set(path.id, path);
     // Also index by learnerId for findByLearnerId
-    (this as any)._learnerIndex = (this as any)._learnerIndex ?? new Map<string, string>();
+    (this as any)._learnerIndex =
+      (this as any)._learnerIndex ?? new Map<string, string>();
     (this as any)._learnerIndex.set(path.learnerId, path.id);
   }
 
@@ -51,17 +52,62 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['algorithmique-recursive', 'programmation-objet'],
+        mandatoryCompetenceIds: [
+          'algorithmique-recursive',
+          'programmation-objet',
+        ],
         weeklyHours: 10,
         deadlineAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // +60 jours
       }),
       activities: [
-        new Activity(randomUUID(), 'content-remediation-algo', 'REMEDIATION', ['algorithmique-recursive'], 2, 0),
-        new Activity(randomUUID(), 'content-algo-recursive-intro', 'LESSON',   ['algorithmique-recursive'], 3, 1),
-        new Activity(randomUUID(), 'content-algo-recursive-ex',   'EXERCISE',  ['algorithmique-recursive'], 2, 2),
-        new Activity(randomUUID(), 'content-poo-intro',           'LESSON',    ['programmation-objet'],     4, 3),
-        new Activity(randomUUID(), 'content-poo-patterns',        'LESSON',    ['programmation-objet'],     3, 4),
-        new Activity(randomUUID(), 'content-poo-eval',            'ASSESSMENT',['programmation-objet'],     1, 5),
+        new Activity(
+          randomUUID(),
+          'content-remediation-algo',
+          'REMEDIATION',
+          ['algorithmique-recursive'],
+          2,
+          0,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-algo-recursive-intro',
+          'LESSON',
+          ['algorithmique-recursive'],
+          3,
+          1,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-algo-recursive-ex',
+          'EXERCISE',
+          ['algorithmique-recursive'],
+          2,
+          2,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-poo-intro',
+          'LESSON',
+          ['programmation-objet'],
+          4,
+          3,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-poo-patterns',
+          'LESSON',
+          ['programmation-objet'],
+          3,
+          4,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-poo-eval',
+          'ASSESSMENT',
+          ['programmation-objet'],
+          1,
+          5,
+        ),
       ],
       levels: [
         EstimatedLevel.from('algorithmique-recursive', 0.42), // insuffisant — remédiation déjà insérée
@@ -77,21 +123,66 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['structures-donnees', 'complexite-algorithmique'],
+        mandatoryCompetenceIds: [
+          'structures-donnees',
+          'complexite-algorithmique',
+        ],
         weeklyHours: 15,
         deadlineAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 jours
       }),
       activities: [
-        new Activity(randomUUID(), 'content-struct-intro',   'LESSON',    ['structures-donnees'],        2, 0),
-        new Activity(randomUUID(), 'content-struct-ex',      'EXERCISE',  ['structures-donnees'],        2, 1),
-        new Activity(randomUUID(), 'content-struct-eval',    'ASSESSMENT',['structures-donnees'],        1, 2),
-        new Activity(randomUUID(), 'content-complexite-intro','LESSON',   ['complexite-algorithmique'],  4, 3),
-        new Activity(randomUUID(), 'content-complexite-ex',  'EXERCISE',  ['complexite-algorithmique'],  3, 4),
-        new Activity(randomUUID(), 'content-complexite-eval','ASSESSMENT',['complexite-algorithmique'], 1, 5),
+        new Activity(
+          randomUUID(),
+          'content-struct-intro',
+          'LESSON',
+          ['structures-donnees'],
+          2,
+          0,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-struct-ex',
+          'EXERCISE',
+          ['structures-donnees'],
+          2,
+          1,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-struct-eval',
+          'ASSESSMENT',
+          ['structures-donnees'],
+          1,
+          2,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-complexite-intro',
+          'LESSON',
+          ['complexite-algorithmique'],
+          4,
+          3,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-complexite-ex',
+          'EXERCISE',
+          ['complexite-algorithmique'],
+          3,
+          4,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-complexite-eval',
+          'ASSESSMENT',
+          ['complexite-algorithmique'],
+          1,
+          5,
+        ),
       ],
       levels: [
-        EstimatedLevel.from('structures-donnees', 0.93),        // maîtrise → eligible accélération
-        EstimatedLevel.from('complexite-algorithmique', 0.55),  // en cours
+        EstimatedLevel.from('structures-donnees', 0.93), // maîtrise → eligible accélération
+        EstimatedLevel.from('complexite-algorithmique', 0.55), // en cours
       ],
     });
     this.store.set(path2.id, path2);
@@ -104,17 +195,63 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-entreprise-x',
       targetCertificationId: 'cert-securite-systemes',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['securite-web', 'cryptographie', 'gestion-vulnerabilites'],
+        mandatoryCompetenceIds: [
+          'securite-web',
+          'cryptographie',
+          'gestion-vulnerabilites',
+        ],
         weeklyHours: 5,
         deadlineAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 jours seulement
       }),
       activities: [
-        new Activity(randomUUID(), 'content-securite-intro',  'LESSON',    ['securite-web'],             4, 0),
-        new Activity(randomUUID(), 'content-securite-ex',     'EXERCISE',  ['securite-web'],             3, 1),
-        new Activity(randomUUID(), 'content-crypto-intro',    'LESSON',    ['cryptographie'],            5, 2),
-        new Activity(randomUUID(), 'content-crypto-ex',       'EXERCISE',  ['cryptographie'],            4, 3),
-        new Activity(randomUUID(), 'content-vuln-intro',      'LESSON',    ['gestion-vulnerabilites'],   3, 4),
-        new Activity(randomUUID(), 'content-vuln-eval',       'ASSESSMENT',['gestion-vulnerabilites'],   2, 5),
+        new Activity(
+          randomUUID(),
+          'content-securite-intro',
+          'LESSON',
+          ['securite-web'],
+          4,
+          0,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-securite-ex',
+          'EXERCISE',
+          ['securite-web'],
+          3,
+          1,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-crypto-intro',
+          'LESSON',
+          ['cryptographie'],
+          5,
+          2,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-crypto-ex',
+          'EXERCISE',
+          ['cryptographie'],
+          4,
+          3,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-vuln-intro',
+          'LESSON',
+          ['gestion-vulnerabilites'],
+          3,
+          4,
+        ),
+        new Activity(
+          randomUUID(),
+          'content-vuln-eval',
+          'ASSESSMENT',
+          ['gestion-vulnerabilites'],
+          2,
+          5,
+        ),
       ],
       levels: [],
     });
@@ -122,8 +259,22 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
     learnerIndex.set(path3.learnerId, path3.id);
 
     // ── Scénario 4 : Parcours terminé ────────────────────────────────────────
-    const act4a = new Activity(randomUUID(), 'content-js-fondamentaux', 'LESSON', ['javascript-core'], 3, 0);
-    const act4b = new Activity(randomUUID(), 'content-js-async',        'LESSON', ['javascript-async'], 2, 1);
+    const act4a = new Activity(
+      randomUUID(),
+      'content-js-fondamentaux',
+      'LESSON',
+      ['javascript-core'],
+      3,
+      0,
+    );
+    const act4b = new Activity(
+      randomUUID(),
+      'content-js-async',
+      'LESSON',
+      ['javascript-async'],
+      2,
+      1,
+    );
     act4a.complete();
     act4b.complete();
     const path4 = LearningPath.reconstitute({
