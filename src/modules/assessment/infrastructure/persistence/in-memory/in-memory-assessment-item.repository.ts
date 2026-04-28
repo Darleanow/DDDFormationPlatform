@@ -14,7 +14,7 @@ export class InMemoryAssessmentItemRepository
     }
   }
 
-  async findByCompetenceId(competenceId: string): Promise<AssessmentItem[]> {
+  async findByCompetencyId(competenceId: string): Promise<AssessmentItem[]> {
     return this.store.get(competenceId) ?? [];
   }
 

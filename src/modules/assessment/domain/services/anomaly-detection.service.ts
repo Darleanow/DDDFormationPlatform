@@ -1,15 +1,16 @@
 import { AssessmentAttempt } from '../aggregates/assessment/assessment-attempt';
 import { BehavioralAnomaly } from '../value-objects/behavioral-anomaly';
 
-export interface BehavioralAnomalyThresholds {
+export interface AnomalyDetectionThresholds {
   minQuestionCount: number;
   maxDurationSeconds: number;
   signal: string;
   confidence: number;
 }
 
-export class BehavioralAnomalyDetector {
-  constructor(private readonly thresholds: BehavioralAnomalyThresholds) {
+/** BC4 — Behavioural anomaly detection for assessment attempts (spec: AnomalyDetectionService). */
+export class AnomalyDetectionService {
+  constructor(private readonly thresholds: AnomalyDetectionThresholds) {
     if (
       !Number.isFinite(thresholds.minQuestionCount) ||
       thresholds.minQuestionCount <= 0

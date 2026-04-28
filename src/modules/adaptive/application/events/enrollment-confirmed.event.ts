@@ -8,7 +8,7 @@ export class EnrollmentConfirmedEvent {
     public readonly constraints: {
       weeklyHours: number;
       deadline?: Date;
-      mandatoryCompetenceIds: string[];
+      mandatoryCompetencyIds: string[];
     },
     public readonly catalogActivities: Array<{
       contentId: string;

@@ -7,7 +7,7 @@ export class CertificativeAssessmentScoredEvent {
     public readonly globalScore: number,
     // Per competence
     public readonly competences: Array<{
-      competenceId: string;
+      competencyId: string;
       score: number;
     }>,
     public readonly isSuspect: boolean,

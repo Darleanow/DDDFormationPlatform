@@ -3,5 +3,5 @@ import { AssessmentItem } from '../aggregates/assessment/assessment-item';
 export const ASSESSMENT_ITEM_REPOSITORY = Symbol('ASSESSMENT_ITEM_REPOSITORY');
 
 export interface AssessmentItemRepository {
-  findByCompetenceId(competenceId: string): Promise<AssessmentItem[]>;
+  findByCompetencyId(competenceId: string): Promise<AssessmentItem[]>;
 }

@@ -1,8 +1,6 @@
 import { AssessmentItem } from '../aggregates/assessment/assessment-item';
-import {
-  AssessmentItemResult,
-  ScoreCalculator,
-} from './score-calculator';
+import { AssessmentItemResult } from './score-calculator';
+import { ScoringService } from './scoring.service';
 import { Score } from '../value-objects/score';
 
 export interface AssessmentResultInterpretation {
@@ -17,7 +15,7 @@ export class AssessmentResultInterpreter {
     items: AssessmentItem[],
     results: AssessmentItemResult[],
   ): AssessmentResultInterpretation {
-    const score = ScoreCalculator.calculate(items, results);
+    const score = ScoringService.calculate(items, results);
     const maxScore = items.reduce((sum, item) => sum + item.getWeight(), 0);
     const normalizedRawScore = maxScore > 0 ? score.value / maxScore : 0;
 
