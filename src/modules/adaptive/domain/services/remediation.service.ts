@@ -24,7 +24,7 @@ export class RemediationService {
       randomUUID(),
       remediationContent.contentId,
       'REMEDIATION',
-      [level.getCompetenceId()],
+      [level.getCompetencyId()],
       remediationContent.estimatedHours,
       currentActivity.order, // Inserts before next activity
     );

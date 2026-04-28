@@ -12,7 +12,7 @@ export class ConstraintSolverService {
       return {
         feasible: false,
         uncoveredCompetences: uncovered,
-        alertMessage: `Skill uncovered in delay : ${uncovered.length}`,
+        alertMessage: `Mandatory coverage at risk: cannot cover ${uncovered.length} required competence(s) within remaining time and availability`,
       };
     }
 
