@@ -21,40 +21,66 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Monorepo (`npm` workspaces)
+
+```
+.
+├── backend/     # NestJS API (port 3000)
+├── frontend/    # Next.js app (port 3001)
+├── package.json # workspaces + scripts (`npm run dev`)
+└── .nvmrc       # Node version
+```
+
+Install everything from the **repository root** (single lockfile):
+
+```bash
+npm install
+```
+
+Run backend + frontend together:
+
+```bash
+npm run dev
+```
+
+Scripts targeting only the API or the UI:
+
+```bash
+npm run start:dev --workspace=backend
+npm run dev --workspace=frontend
+```
+
+---
+
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Nest](https://github.com/nestjs/nest) backend (`backend/`) and Next.js frontend (`frontend/`).
 
 ## Project setup
 
 ```bash
-$ npm install
+npm install
 ```
 
 ## Compile and run the project
 
 ```bash
-# development
-$ npm run start
+npm run dev
+```
 
-# watch mode
-$ npm run start:dev
+Production API:
 
-# production mode
-$ npm run start:prod
+```bash
+npm run build --workspace=backend
+npm run start:prod --workspace=backend
 ```
 
 ## Run tests
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run test --workspace=backend
+npm run test:e2e --workspace=backend
+npm run test:cov --workspace=backend
 ```
 
 ## Deployment
