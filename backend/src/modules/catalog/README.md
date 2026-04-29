@@ -39,19 +39,19 @@ curl http://localhost:3000/catalog/programmes
 curl http://localhost:3000/catalog/programmes/p001
 ```
 
-**Lister les modules d'un cours (ex: Fondamentaux) :**
+**Lister les modules d'un cours (ex: Fondamentaux — `course` dans l’URL, « Cours » côté glossaire) :**
 ```bash
-curl http://localhost:3000/catalog/cours/c001/modules
+curl http://localhost:3000/catalog/course/c001/modules
 ```
 
-**Voir le contenu (leçons) d'un module :**
+**Voir les leçons d'un module (`lessons` côté API) :**
 ```bash
-curl http://localhost:3000/catalog/modules/m001/lecons
+curl http://localhost:3000/catalog/modules/m001/lessons
 ```
 
 **Voir les exercices d'une leçon :**
 ```bash
-curl http://localhost:3000/catalog/lecons/l001/exercices
+curl http://localhost:3000/catalog/lessons/l001/exercises
 ```
 
 ### 🧠 Graphe de Prérequis
