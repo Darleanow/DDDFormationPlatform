@@ -22,7 +22,7 @@ class FakeAdaptiveEngineGateway implements AdaptiveEngineGateway {
 }
 
 describe('ProcessAssessmentAttemptUseCase', () => {
-  it('marks attempts as suspect and blocks score transmission', async () => {
+  it('remonte quand même le score au BC3 avec tentative suspecte (PoC)', async () => {
     const assessmentRepository = new InMemoryAssessmentRepository();
     const attemptRepository = new InMemoryAssessmentAttemptRepository();
     const adaptiveGateway = new FakeAdaptiveEngineGateway();
@@ -71,7 +71,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     expect(result.status).toBe(AssessmentAttemptStatus.SUSPECT);
     expect(result.manualReviewStatus).toBe(ManualReviewStatus.PENDING);
     expect(result.requiresManualValidation).toBe(true);
-    expect(adaptiveGateway.submitted).toBe(false);
+    expect(adaptiveGateway.submitted).toBe(true);
   });
 
   it('submits score when no anomaly is detected', async () => {

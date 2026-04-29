@@ -17,6 +17,9 @@ export const BC_INPROCESS_EVENT = {
 export type AssessmentScorePublishedForAdaptivePayload = {
   learnerId: string;
   competencyId: string;
+  /** Niveau agrégé / lissé (affichage parcours + updateLevel). */
   estimatedLevel: number;
+  /** Score de la tentative courante (0–1) pour la série d’accélération — évite un lissage agrégé &lt; 0,9 alors que l’épreuve est réussie. */
+  streakSignalScore?: number;
   tenantId?: string;
 };

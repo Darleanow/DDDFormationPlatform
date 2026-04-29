@@ -1,16 +1,37 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, GraduationCap, Network, ShieldCheck, UserCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  GraduationCap,
+  Network,
+  ShieldCheck,
+  UserCircle2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  LEARNER_DEMO_ACCELERATION_ID,
+  LEARNER_DEMO_CLASSIC_CURRICULUM_ID,
+  setStoredDemoLearnerId,
+  type DemoLearnerId,
+} from "@/lib/demo-learner";
+import { DEFAULT_TENANT_ID } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
+  const [tenantId, setTenantId] = useState(DEFAULT_TENANT_ID);
+  const [learnerId, setLearnerId] = useState<DemoLearnerId>(
+    LEARNER_DEMO_ACCELERATION_ID,
+  );
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app we'd validate and set session.
-    // For this mockup, we'll just redirect to the dashboard.
+    setStoredDemoLearnerId(learnerId);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("fp.demoTenantId", tenantId);
+    }
     router.push("/dashboard");
   };
 
@@ -42,18 +63,35 @@ export default function Home() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Tenant (Organisation)</label>
-              <select className="w-full bg-input/50 border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none">
-                <option value="tenant-1">Université Paris Saclay</option>
-                <option value="tenant-2">Entreprise TechCorp</option>
+              <label className="text-sm font-medium text-foreground">
+                Tenant (organisation)
+              </label>
+              <select
+                value={tenantId}
+                onChange={(e) => setTenantId(e.target.value)}
+                className="w-full bg-input/50 border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
+              >
+                <option value={DEFAULT_TENANT_ID}>Université Lyon (démo seed)</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Apprenant</label>
-              <select className="w-full bg-input/50 border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none">
-                <option value="alice">Alice Dupont (Étudiante)</option>
-                <option value="bob">Bob Martin (Salarié)</option>
+              <label className="text-sm font-medium text-foreground">
+                Apprenant (parcours BC3 séparés)
+              </label>
+              <select
+                value={learnerId}
+                onChange={(e) =>
+                  setLearnerId(e.target.value as DemoLearnerId)
+                }
+                className="w-full bg-input/50 border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
+              >
+                <option value={LEARNER_DEMO_ACCELERATION_ID}>
+                  Alice Dupont — parcours court (accélération / SKIPPED)
+                </option>
+                <option value={LEARNER_DEMO_CLASSIC_CURRICULUM_ID}>
+                  Bruno Lemaire — catalogue complet (sans séquence courte)
+                </option>
               </select>
             </div>
 

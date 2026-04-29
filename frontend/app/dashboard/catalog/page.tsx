@@ -12,11 +12,11 @@ import {
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  DEFAULT_LEARNER_ID,
   getProgrammes,
   getProgramModulesOverview,
   type ModuleOverviewRow,
 } from "@/lib/api";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 function moduleRowStatus(row: ModuleOverviewRow): "locked" | "in_progress" | "done" {
   if (!row.canAccess) return "locked";
@@ -25,6 +25,7 @@ function moduleRowStatus(row: ModuleOverviewRow): "locked" | "in_progress" | "do
 }
 
 export default function CatalogPage() {
+  const { learnerId } = useDemoLearnerId();
   const [programmeId, setProgrammeId] = useState<string | null>(null);
   const [programmeName, setProgrammeName] = useState<string>("");
   const [moduleRows, setModuleRows] = useState<ModuleOverviewRow[]>([]);
@@ -33,6 +34,7 @@ export default function CatalogPage() {
 
   useEffect(() => {
     async function loadCatalog() {
+      setLoading(true);
       try {
         setError(null);
         const progs = await getProgrammes();
@@ -44,11 +46,11 @@ export default function CatalogPage() {
         setProgrammeId(first.id);
         setProgrammeName(first.nom ?? first.id);
 
-        const overview = await getProgramModulesOverview(DEFAULT_LEARNER_ID, first.id).catch(
+        const overview = await getProgramModulesOverview(learnerId, first.id).catch(
           (e) => {
             const msg = e instanceof Error ? e.message : String(e);
             throw new Error(
-              `${msg} — vérifier que le parcours BC3 existe (enrollment / seed) pour ${DEFAULT_LEARNER_ID}.`,
+              `${msg} — vérif parcours BC3 pour l’apprenant sélectionné.`,
             );
           },
         );
@@ -61,7 +63,7 @@ export default function CatalogPage() {
       }
     }
     loadCatalog();
-  }, []);
+  }, [learnerId]);
 
   if (loading) {
     return (

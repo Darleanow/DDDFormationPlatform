@@ -45,6 +45,18 @@ export class LearningPath {
     this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
   }
 
+  /**
+   * Remplace toute la séquence (seed démo / parcours compact). Réordonne de 0 à n−1.
+   */
+  resetActivitiesSequence(activities: Activity[]): void {
+    const sorted = [...activities].sort((a, b) => a.order - b.order);
+    sorted.forEach((a, i) => {
+      (a as { order: number }).order = i;
+    });
+    this.activities = sorted;
+    this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+  }
+
   insertRemediationAfter(targetOrder: number, remediation: Activity): void {
     this.activities
       .filter((a) => a.order > targetOrder)
@@ -71,7 +83,73 @@ export class LearningPath {
       )
       .forEach((a) => a.skip());
 
+    this.compactSequentialOrders();
+
     this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+  }
+
+  /**
+   * Accélération « élargie » : saute des leçons / exercices PENDING dont les tags **incluent** la compétence.
+   * (Le catalogue peut mélanger plusieurs compétences sur une ligne ; la méthode stricte ne sautait alors rien
+   * après une évaluation déjà suivie dans le séquencement de tout le contenu mono-étiquette.)
+   */
+  skipLessonAndExerciseReferencingCompetency(
+    competencyId: string,
+    maxSkips: number,
+  ): number {
+    const sorted = [...this.activities]
+      .filter((a) => a.isPending())
+      .sort((a, b) => a.order - b.order);
+
+    let n = 0;
+    for (const activity of sorted) {
+      if (n >= maxSkips) break;
+      if (activity.type !== 'LESSON' && activity.type !== 'EXERCISE') continue;
+      if (!activity.competencyIds.includes(competencyId)) continue;
+      activity.skip();
+      n += 1;
+    }
+
+    if (n > 0) {
+      this.compactSequentialOrders();
+      this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+    }
+
+    return n;
+  }
+
+  /**
+   * Dernier filet PoC — si aucun contenu assorti n’a sauté, saute les tout premières leçons / exercices encore PENDING,
+   * pour garantir au moins un effet SKIPPED lisible après 3 résultats d’évaluation élevés.
+   */
+  skipFirstPendingLessonOrExerciseBlocks(maxSkips: number): number {
+    const sorted = [...this.activities]
+      .filter((a) => a.isPending())
+      .sort((a, b) => a.order - b.order);
+
+    let n = 0;
+    for (const activity of sorted) {
+      if (n >= maxSkips) break;
+      if (activity.type !== 'LESSON' && activity.type !== 'EXERCISE') continue;
+      activity.skip();
+      n += 1;
+    }
+
+    if (n > 0) {
+      this.compactSequentialOrders();
+      this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+    }
+
+    return n;
+  }
+
+  /** Renumère `order` de 0 à n−1 après sauts/skips pour une séquence continue côté API/UI. */
+  private compactSequentialOrders(): void {
+    const sorted = [...this.activities].sort((a, b) => a.order - b.order);
+    sorted.forEach((a, i) => {
+      (a as { order: number }).order = i;
+    });
+    this.activities = sorted;
   }
 
   /**
@@ -110,22 +188,47 @@ export class LearningPath {
   }
 
   /**
-   * Call after completing the current pending activity when the result is tied to an assessment.
-   * Spec: acceleration after three consecutive evaluations with score &gt; 90%.
+   * Séries d’évaluations &gt; 0,9 — déclenchées par {@link applyAssessmentResultToPath} (BC4 ou bouton ASSESSMENT).
+   * Incrémente aussi lorsque le niveau est excellent mais qu’aucune ligne parcours n’a pu être reliée (parcours décalé).
    */
   recordAssessmentActivityOutcome(
     completedActivity: Activity | undefined,
     level: EstimatedLevel,
+    streakSignalScore?: number,
   ): void {
-    if (!completedActivity || completedActivity.type !== 'ASSESSMENT') {
-      this.assessmentSuccessStreakAbove90 = 0;
+    const signal =
+      streakSignalScore !== undefined && streakSignalScore !== null
+        ? streakSignalScore
+        : level.value();
+    const clampedSignal = Math.min(1, Math.max(0, signal));
+
+    /** Ne remet pas la série à zéro sur un signal faible « fantôme » (BC4 sans ligne parcours reliée) — évite d’effacer la série après POST complete-current. */
+    if (clampedSignal <= 0.9) {
+      if (completedActivity !== undefined) {
+        this.assessmentSuccessStreakAbove90 = 0;
+      }
       return;
     }
-    if (level.value() > 0.9) {
+    if (!completedActivity || completedActivity.type === 'ASSESSMENT') {
       this.assessmentSuccessStreakAbove90 += 1;
-    } else {
-      this.assessmentSuccessStreakAbove90 = 0;
     }
+  }
+
+  /**
+   * Complète la première ligne ASSESSMENT pendante dont le {@link contentId} correspond (sans exiger que ce soit déjà {@link #getNextPendingActivity}).
+   * Utilisée lorsque BC4 résout une évaluation dont la ligne sur le graphe était bloquée par un léger décalage d’ordonnancement.
+   */
+  completePendingAssessmentWithContentId(expectedContentId: string): Activity | undefined {
+    const sorted = [...this.activities].sort((a, b) => a.order - b.order);
+    const target = sorted.find(
+      (a) => a.isPending() && a.type === 'ASSESSMENT' && a.contentId === expectedContentId,
+    );
+    if (!target) {
+      return undefined;
+    }
+    target.complete();
+    this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+    return target;
   }
 
   shouldAccelerateAfterConsecutiveHighScores(): boolean {
@@ -134,6 +237,11 @@ export class LearningPath {
 
   resetAccelerationStreak(): void {
     this.assessmentSuccessStreakAbove90 = 0;
+  }
+
+  /** Exposé BC3 / API — accélération après 3 scores &gt;90 % sur les dernières évaluations. */
+  getAssessmentAccelerationStreak(): number {
+    return this.assessmentSuccessStreakAbove90;
   }
 
   getLevelFor(competencyId: string): EstimatedLevel | undefined {

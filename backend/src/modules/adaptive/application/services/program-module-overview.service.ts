@@ -59,6 +59,8 @@ export class ProgramModuleOverviewService {
       await this.prereqGraph.getModulesInTopologicalOrderForProgram(programId);
 
     const rows: ModuleOverviewRow[] = [];
+    /** Aligné sur `IdentityToAdaptiveAdapter` : une évaluation stable par compétence sur tout le programme. */
+    const seenAssessmentContentIds = new Set<string>();
 
     for (const mod of modules) {
       const access = await this.prereqGraph.checkAccess(mod.id, uniqueValidated);
@@ -89,6 +91,10 @@ export class ProgramModuleOverviewService {
       }
       for (const comp of mod.competences ?? []) {
         const contentId = assessmentAggregateIdForCompetency(comp.id);
+        if (seenAssessmentContentIds.has(contentId)) {
+          continue;
+        }
+        seenAssessmentContentIds.add(contentId);
         steps.push({
           type: 'ASSESSMENT',
           contentId,

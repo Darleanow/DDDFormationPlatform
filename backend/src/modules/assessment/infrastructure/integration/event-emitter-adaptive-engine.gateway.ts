@@ -11,6 +11,7 @@ export class EventEmitterAdaptiveEngineGateway implements AdaptiveEngineGateway 
     learnerId: string;
     competencyId: string;
     estimatedLevel: number;
+    streakSignalScore?: number;
     tenantId?: string;
   }): Promise<void> {
     // emitAsync: downstream BC3 listeners often async; must complete before BC4 considers work done (Context Map ACL chain).

@@ -49,6 +49,9 @@ export class IdentityToAdaptiveAdapter {
         const sortedModules =
           await this.prereqGraph.getModulesInTopologicalOrderForProgram(programId);
 
+        /** Une seule ligne d'évaluation BC4 par couple stable `contentId` (évite doublons quand plusieurs modules partagent une compétence). */
+        const seenAssessmentContentIds = new Set<string>();
+
         for (const mod of sortedModules) {
           mod.competences?.forEach((c) => mandatoryCompetencyIds.push(c.id));
 
@@ -81,8 +84,13 @@ export class IdentityToAdaptiveAdapter {
 
           const compIdsUnit = [...new Set((mod.competences || []).map((c: { id: string }) => c.id))];
           for (const cid of compIdsUnit) {
+            const aggregateId = assessmentAggregateIdForCompetency(cid);
+            if (seenAssessmentContentIds.has(aggregateId)) {
+              continue;
+            }
+            seenAssessmentContentIds.add(aggregateId);
             catalogActivities.push({
-              contentId: assessmentAggregateIdForCompetency(cid),
+              contentId: aggregateId,
               competencyIds: [cid],
               estimatedHours: 0.5,
               type: 'ASSESSMENT',

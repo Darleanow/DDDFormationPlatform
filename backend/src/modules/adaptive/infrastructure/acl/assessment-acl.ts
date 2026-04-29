@@ -10,6 +10,11 @@ export class AssessmentResultPayload {
     public readonly learnerId: string,
     public readonly competencyId: string,
     public readonly estimatedLevel: number,
+    /**
+     * Score de la tentative (0–1) pour la série / accélération.
+     * Si absent, on utilise `estimatedLevel` (bouton démo, ou BC4 sans lissage).
+     */
+    public readonly streakSignalScore?: number,
   ) {}
 }
 

@@ -4,13 +4,13 @@ import { FileText, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import {
-  DEFAULT_LEARNER_ID,
   getExercise,
   getLearningPath,
   getLesson,
   markActivityCompleted,
 } from "@/lib/api";
 import { activityDetailHref } from "@/lib/adaptive-navigation";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 export default function ExercisePage({
   params,
@@ -19,6 +19,7 @@ export default function ExercisePage({
 }) {
   const resolvedParams = use(params);
   const exoId = resolvedParams.id;
+  const { learnerId } = useDemoLearnerId();
   const [exo, setExo] = useState<any>(null);
   const [moduleId, setModuleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function ExercisePage({
         setCompletionError(null);
         const [data, path] = await Promise.all([
           getExercise(exoId),
-          getLearningPath(DEFAULT_LEARNER_ID).catch(() => null),
+          getLearningPath(learnerId).catch(() => null),
         ]);
         setExo(data);
 
@@ -72,7 +73,7 @@ export default function ExercisePage({
       }
     }
     loadData();
-  }, [exoId]);
+  }, [exoId, learnerId]);
 
   const isNextAdaptiveStep =
     nextStep !== null && nextStep.contentId === exoId;
@@ -83,7 +84,7 @@ export default function ExercisePage({
     setCompleting(true);
     setCompletionError(null);
     try {
-      await markActivityCompleted(DEFAULT_LEARNER_ID, exoId);
+      await markActivityCompleted(learnerId, exoId);
       setCompleted(true);
     } catch (e) {
       console.error("Failed to mark as completed", e);

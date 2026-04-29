@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Network, ShieldCheck, UserCircle2, Settings, ClipboardList } from "lucide-react";
+import { BookOpen, Network, ShieldCheck, UserCircle2, ClipboardList, LogIn } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isDashboardNavActive } from "@/lib/dashboard-nav";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
+import { LEARNER_DEMO_ACCELERATION_ID } from "@/lib/demo-learner";
 
 /** PoC shell: BC2 content under Catalog; BC3 path under Adaptive; BC4 session under /assessment/session. Index pages Assessment & Certification are mock shells until BC4/BC5 APIs are wired end-to-end. */
 const navItems = [
@@ -21,6 +23,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { learnerId } = useDemoLearnerId();
+  const isAlice = learnerId === LEARNER_DEMO_ACCELERATION_ID;
+  const learnerLabel = isAlice ? "Alice Dupont" : "Bruno Lemaire";
+  const learnerSubtitle = isAlice ? "Parcours compact (démo)" : "Catalogue complet";
 
   return (
     <div className="min-h-screen bg-black flex overflow-hidden">
@@ -32,7 +38,7 @@ export default function DashboardLayout({
       >
         <div className="p-6 border-b border-border">
           <h2 className="text-xl font-bold tracking-tight text-primary">Formation<span className="text-primary/60">Platform</span></h2>
-          <p className="text-xs text-muted-foreground mt-1">Tenant: Université Paris Saclay</p>
+          <p className="text-xs text-muted-foreground mt-1">Université Lyon — démo catalogue</p>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
@@ -55,14 +61,23 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center space-x-3 px-4 py-3 text-muted-foreground">
+        <div className="p-4 border-t border-border space-y-2">
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+          >
+            <LogIn className="w-5 h-5 shrink-0" />
+            <span>Connexion — autre apprenant</span>
+          </Link>
+          <div className="flex items-center space-x-3 px-4 py-2 text-muted-foreground">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">AD</span>
+              <span className="text-xs font-bold text-primary">
+                {isAlice ? "AD" : "BL"}
+              </span>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">Alice Dupont</span>
-              <span className="text-xs">Apprenant</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium text-foreground truncate">{learnerLabel}</span>
+              <span className="text-xs truncate">{learnerSubtitle}</span>
             </div>
           </div>
         </div>

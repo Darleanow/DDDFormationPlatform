@@ -2,9 +2,11 @@
 
 import { UserCircle2, Clock, Calendar, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getTenant, getLearner } from "@/lib/api";
+import { getTenant, getLearner, DEFAULT_TENANT_ID } from "@/lib/api";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 export default function TenantProfilePage() {
+  const { learnerId } = useDemoLearnerId();
   const [tenant, setTenant] = useState<any>(null);
   const [learner, setLearner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -12,12 +14,14 @@ export default function TenantProfilePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [t, l] = await Promise.all([
-          getTenant("tenant-1"),
-          getLearner("learner-alice")
-        ]);
-        setTenant(t);
+        const l = await getLearner(learnerId);
         setLearner(l);
+        const tenantId = (l?.tenantId as string | undefined) ?? DEFAULT_TENANT_ID;
+        try {
+          setTenant(await getTenant(tenantId));
+        } catch (tenantErr) {
+          console.error("Tenant introuvable — id attendu depuis l’apprenant seed :", tenantId, tenantErr);
+        }
       } catch (e) {
         console.error("Failed to load data", e);
       } finally {
@@ -25,7 +29,7 @@ export default function TenantProfilePage() {
       }
     }
     loadData();
-  }, []);
+  }, [learnerId]);
 
   if (loading) {
     return <div className="flex h-64 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;

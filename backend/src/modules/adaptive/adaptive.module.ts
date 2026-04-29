@@ -49,6 +49,6 @@ import { IdentityToAdaptiveAdapter } from './infrastructure/integration/identity
     AssessmentToAdaptiveAdapter,
   ],
   controllers: [AdaptiveController],
-  exports: [],
+  exports: [IdentityToAdaptiveAdapter, LearningPathRepository],
 })
 export class AdaptiveModule {}

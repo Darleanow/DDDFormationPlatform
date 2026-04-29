@@ -23,6 +23,7 @@ export class AssessmentToAdaptiveAdapter {
       payload.learnerId,
       payload.competencyId,
       payload.estimatedLevel,
+      payload.streakSignalScore,
     );
 
     await this.handler.handle(adapted);

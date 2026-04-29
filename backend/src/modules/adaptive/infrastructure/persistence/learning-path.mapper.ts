@@ -40,6 +40,7 @@ export class LearningPathMapper {
       constraint,
       activities,
       levels,
+      assessmentSuccessStreakAbove90: entity.assessmentSuccessStreakAbove90 ?? 0,
     });
   }
 
@@ -53,6 +54,7 @@ export class LearningPathMapper {
     entity.mandatoryCompetencyIds = path
       .getConstraint()
       .getMandatoryCompetencyIds();
+    entity.assessmentSuccessStreakAbove90 = path.getAssessmentAccelerationStreak();
     entity.activities = path.getActivities().map((activity) => {
       const activityEntity = new ActivityOrmEntity();
       activityEntity.id = activity.id;

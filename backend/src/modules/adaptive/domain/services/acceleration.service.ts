@@ -9,7 +9,14 @@ export class AccelerationService {
   applyIfEligible(path: LearningPath, level: EstimatedLevel): boolean {
     if (!path.shouldAccelerateAfterConsecutiveHighScores()) return false;
 
-    path.skipActivitiesForCompetences([level.getCompetencyId()]);
+    const competencyId = level.getCompetencyId();
+
+    path.skipActivitiesForCompetences([competencyId]);
+    let nSurrogate = path.skipLessonAndExerciseReferencingCompetency(competencyId, 24);
+    if (nSurrogate === 0) {
+      path.skipFirstPendingLessonOrExerciseBlocks(4);
+    }
+
     path.resetAccelerationStreak();
     return true;
   }

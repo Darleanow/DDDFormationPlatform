@@ -1,3 +1,10 @@
+import {
+  LEARNER_DEMO_ACCELERATION_ID,
+  LEARNER_DEMO_CLASSIC_CURRICULUM_ID,
+} from "./demo-learner";
+
+export { LEARNER_DEMO_ACCELERATION_ID, LEARNER_DEMO_CLASSIC_CURRICULUM_ID };
+
 export const API_BASE = "http://localhost:3000";
 
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -89,8 +96,11 @@ export function checkCatalogModuleAccess(moduleId: string, validatedCompetenceId
     `/catalog/modules/${encodeURIComponent(moduleId)}/access${v}`,
   );
 }
-/** Demo learner seeded in dev — swap for auth-backed id when identities exist */
-export const DEFAULT_LEARNER_ID = 'learner-alice';
+/** Ancien défaut Alice — préférez LEARNER_DEMO_* + sélecteur dashboard */
+export const DEFAULT_LEARNER_ID = LEARNER_DEMO_ACCELERATION_ID;
+
+/** Demo tenant seeded in SeedService (`tenant-universite-lyon`) — keep in sync with backend */
+export const DEFAULT_TENANT_ID = 'tenant-universite-lyon';
 
 /** Marks the **next** pending adaptive activity; `contentId` must match that activity (current lesson). */
 export const markActivityCompleted = (learnerId: string, contentId: string) =>

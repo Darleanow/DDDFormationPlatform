@@ -139,12 +139,42 @@ describe('Adaptive domain services', () => {
       const skippedActivities = path
         .getActivities()
         .filter((activity) => activity.getStatus().toString() === 'SKIPPED');
+      // Strict (mono‑compétence), puis élargissement ; aucune ligne suivante avec la comp.
+      // → dernier filet : saute jusqu’à 4 leçons / exercices PENDING (dont activity-5 sans tag commun).
       expect(skippedActivities.map((a) => a.id)).toEqual([
         'activity-3',
         'activity-4',
+        'activity-5',
       ]);
-      const nextPending = path.getNextPendingActivity();
-      expect(nextPending?.id).toBe('activity-5');
+      expect(path.getNextPendingActivity()).toBeUndefined();
+    });
+
+    it('does not reset acceleration streak when intermediate activities are not assessments', () => {
+      const lesson = new Activity(
+        'lesson-a',
+        'l1',
+        'LESSON',
+        ['algorithmique-recursive'],
+        1,
+        0,
+      );
+      const path = LearningPath.reconstitute({
+        id: 'path-streak',
+        learnerId: 'learner-s',
+        tenantId: 'tenant-s',
+        constraint: CoverageConstraint.from({
+          mandatoryCompetencyIds: ['algorithmique-recursive'],
+          weeklyHours: 10,
+        }),
+        activities: [lesson],
+        assessmentSuccessStreakAbove90: 2,
+      });
+
+      path.recordAssessmentActivityOutcome(
+        lesson,
+        EstimatedLevel.from('algorithmique-recursive', 1),
+      );
+      expect(path.getAssessmentAccelerationStreak()).toBe(2);
     });
   });
 
@@ -176,13 +206,11 @@ describe('Adaptive domain services', () => {
 
       const result = service.solve(path);
 
-      expect(result.feasible).toBe(false);
-      if (!result.feasible) {
-        expect(result.uncoveredCompetences).toContain(
-          'algorithmique-recursive',
-        );
-        expect(result.alertMessage).toContain('Mandatory coverage at risk');
-      }
+      expect(result.scheduleFeasible).toBe(false);
+      expect(result.uncoveredMandatoryCompetences).toContain(
+        'algorithmique-recursive',
+      );
+      expect(service.scheduleRiskMessage(path)).toContain('Charge horaire');
     });
 
     it('prioritizes mandatory uncovered competencies when feasibility fails', () => {

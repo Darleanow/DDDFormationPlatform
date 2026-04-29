@@ -6,6 +6,12 @@ import { Score } from '../value-objects/score';
 export interface AssessmentResultInterpretation {
   score: Score;
   interpretedScore: number;
+  /**
+   * Part du score max atteinte sur les items (0–1), sans facteurs difficulté / cohérence.
+   * Sert notamment au BC3 pour la série d’accélération : des réponses toutes justes restent à 1
+   * même si `interpretedScore` est abaissé par des items « faciles » dans la formule probabiliste.
+   */
+  normalizedItemScoreRatio: number;
   averageDifficulty: number;
   answerConsistency: number;
 }
@@ -33,6 +39,7 @@ export class AssessmentResultInterpreter {
     return {
       score,
       interpretedScore,
+      normalizedItemScoreRatio: normalizedRawScore,
       averageDifficulty,
       answerConsistency,
     };

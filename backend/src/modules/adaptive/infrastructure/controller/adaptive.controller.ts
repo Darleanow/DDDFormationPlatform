@@ -15,6 +15,12 @@ import { Recommendation } from '../../domain/entities/recommendation.entity';
 import { LearningPlan } from '../../domain/entities/learning-plan.entity';
 import { Activity } from '../../domain/entities/activity.entity';
 import { ProgramModuleOverviewService } from '../../application/services/program-module-overview.service';
+import {
+  AssessmentResultHandler,
+  AssessmentResultPayload,
+  MANUAL_ASSESSMENT_UI_SCORE,
+} from '../../application/handlers/assessment-result.handler';
+import { competencyIdFromAssessmentContentId } from '../../../../shared/bc-integration/assessment-ids';
 
 // ── DTOs ────────────────────────────────────────────────────────────────────
 
@@ -32,9 +38,13 @@ export class PathResponseDto {
   learnerId: string;
   activities: ActivityDto[];
   nextActivity: ActivityDto | null;
+  /** True lorsque les heures PENDING dépassent la capacité jusqu’à l’échéance avec la disponibilité hebdo. */
   coverageAtRisk: boolean;
   alertMessage?: string;
+  /** Obligatoires pas encore présents sur au moins une activité COMPLETED — normal en cours de route. */
   uncoveredCompetences: string[];
+  /** Évaluations consécutives &gt; 90 % (objectif 3 pour sauter le contenu redondant sur la compétence). */
+  accelerationAssessmentStreak: number;
 }
 
 export class RecommendationResponseDto {
@@ -94,6 +104,7 @@ export class AdaptiveController {
     private readonly repo: LearningPathRepository,
     private readonly solver: ConstraintSolverService,
     private readonly moduleOverview: ProgramModuleOverviewService,
+    private readonly assessmentResultHandler: AssessmentResultHandler,
   ) {}
 
   /**
@@ -134,21 +145,20 @@ export class AdaptiveController {
     const result = this.solver.solve(path);
     const nextActivity = path.getNextPendingActivity();
 
+    const uncoveredCompetences = result.uncoveredMandatoryCompetences;
     let alertMessage: string | undefined;
-    let uncoveredCompetences: string[] = [];
-
-    if (!result.feasible) {
-      alertMessage = result.alertMessage;
-      uncoveredCompetences = result.uncoveredCompetences;
+    if (!result.scheduleFeasible) {
+      alertMessage = this.solver.scheduleRiskMessage(path);
     }
 
     return {
       learnerId,
       activities: path.getActivities().map((a) => this.toDto(a)),
       nextActivity: nextActivity ? this.toDto(nextActivity) : null,
-      coverageAtRisk: !result.feasible,
+      coverageAtRisk: !result.scheduleFeasible,
       alertMessage,
       uncoveredCompetences,
+      accelerationAssessmentStreak: path.getAssessmentAccelerationStreak(),
     };
   }
 
@@ -174,7 +184,7 @@ export class AdaptiveController {
     if (!nextActivity) {
       recommendation = Recommendation.noActivityAvailable(learnerId);
     } else {
-      const reason = !solverResult.feasible
+      const reason = !solverResult.scheduleFeasible
         ? 'MANDATORY_PRIORITY'
         : nextActivity.type === 'REMEDIATION'
           ? 'POST_REMEDIATION'
@@ -184,7 +194,7 @@ export class AdaptiveController {
         learnerId,
         nextActivity,
         reason,
-        !solverResult.feasible,
+        !solverResult.scheduleFeasible,
       );
     }
 
@@ -230,7 +240,25 @@ export class AdaptiveController {
     }
 
     path.markCurrentActivityCompleted();
-    await this.repo.save(path);
+
+    const competencyFromContent =
+      next.competencyIds.length > 0
+        ? next.competencyIds[0]
+        : competencyIdFromAssessmentContentId(next.contentId);
+    if (next.type === 'ASSESSMENT' && competencyFromContent) {
+      await this.assessmentResultHandler.applyAssessmentResultToPath(
+        path,
+        new AssessmentResultPayload(
+          learnerId,
+          competencyFromContent,
+          MANUAL_ASSESSMENT_UI_SCORE,
+          MANUAL_ASSESSMENT_UI_SCORE,
+        ),
+        next,
+      );
+    } else {
+      await this.repo.save(path);
+    }
 
     return {
       message: 'Activité marquée comme complétée',

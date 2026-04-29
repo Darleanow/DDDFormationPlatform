@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap, Inject } from '@nestjs/common';
+import { Injectable, Inject, OnApplicationBootstrap } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import { TENANT_REPOSITORY } from './modules/tenant/domain/repositories/tenant.repository.interface';
@@ -17,8 +17,10 @@ import type { ICertificationRepository } from './modules/certification/domain/re
 import { Certification } from './modules/certification/domain/entities/certification.entity';
 import { IssuanceRule } from './modules/certification/domain/entities/issuance-rule.entity';
 import type { CompetencyId } from './shared/competency-id';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IdentityToAdaptiveAdapter } from './modules/adaptive/infrastructure/integration/identity-to-adaptive.adapter';
+import { buildAliceDemoCompactActivities } from './modules/adaptive/infrastructure/integration/alice-demo-compact-path';
 import { EnrollmentConfirmedEvent } from './modules/identity/domain/events/enrollment-confirmed.event';
+import { LearningPathRepository } from './modules/adaptive/domain/repositories/learning-path.repository';
 
 // We could also inject the Catalog and Adaptive repos to fully populate the mock DB
 // For now, let's at least create the Tenant, Learner, and Enrollment.
@@ -30,7 +32,8 @@ export class SeedService implements OnApplicationBootstrap {
     @Inject(LEARNER_REPOSITORY) private readonly learnerRepo: ILearnerRepository,
     @Inject(ENROLLMENT_REPOSITORY) private readonly enrollmentRepo: IEnrollmentRepository,
     @Inject('ICertificationRepository') private readonly certRepo: ICertificationRepository,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly identityToAdaptive: IdentityToAdaptiveAdapter,
+    @Inject(LearningPathRepository) private readonly learningPathRepo: LearningPathRepository,
   ) {}
 
   async onApplicationBootstrap() {
@@ -63,41 +66,64 @@ export class SeedService implements OnApplicationBootstrap {
       console.log('✅ Created mock Learner: Alice Dupont');
     }
 
-    // 3. Create an Enrollment
     const programId = 'p001';
-    const existingEnrollment = await this.enrollmentRepo.existsByLearnerAndProgram(learnerId, programId);
-    if (!existingEnrollment) {
-      const enrollment = Enrollment.create({
-        id: randomUUID(),
-        learnerId,
-        tenantId,
-        programId,
-        weeklyAvailabilityHours: 10,
-        deadline: new Date('2027-06-30T00:00:00Z'),
-      });
-      await this.enrollmentRepo.save(enrollment);
-      console.log('✅ Created mock Enrollment for Alice in Dévelopement Logiciel Avancé');
-    }
 
-    /** Re-publication à chaque boot : parcours in-memory régénéré depuis le catalogue CSV + prérequis. */
-    const aliceEnrollments = await this.enrollmentRepo.findByLearner(learnerId);
-    const aliceProgram = aliceEnrollments.find((e) => e.programId === programId);
-    if (aliceProgram) {
-      await this.eventEmitter.emitAsync(
-        EnrollmentConfirmedEvent.EVENT_NAME,
-        new EnrollmentConfirmedEvent(
-          aliceProgram.learnerId,
-          aliceProgram.tenantId,
-          aliceProgram.programId,
-          aliceProgram.weeklyAvailabilityHours,
-          aliceProgram.deadline,
-          aliceProgram.enrolledAt,
-        ),
+    /** Inscription générique programme p001 — deux apprenants : Alice (parcours compact démo accélération) et Bruno (catalogue BC2 complet pour comparer). */
+    const enrollIfMissing = async (
+      learner: { id: string; firstName: string; lastName: string },
+    ) => {
+      const missing = !(await this.enrollmentRepo.existsByLearnerAndProgram(
+        learner.id,
+        programId,
+      ));
+      if (missing) {
+        await this.enrollmentRepo.save(
+          Enrollment.create({
+            id: randomUUID(),
+            learnerId: learner.id,
+            tenantId,
+            programId,
+            weeklyAvailabilityHours: 10,
+            deadline: new Date('2027-06-30T00:00:00Z'),
+          }),
+        );
+        console.log(
+          `✅ Inscription créée (${learner.firstName} ${learner.lastName}) — programme p001`,
+        );
+      }
+    };
+
+    await enrollIfMissing({ id: learnerId, firstName: 'Alice', lastName: 'Dupont' });
+
+    const learnerBrunoClassicId = 'learner-bob-classic';
+    const existingBruno = await this.learnerRepo.findById(learnerBrunoClassicId);
+    if (!existingBruno) {
+      await this.learnerRepo.save(
+        Learner.create({
+          id: learnerBrunoClassicId,
+          tenantId,
+          email: 'bruno.lemaire@universite-lyon.fr',
+          firstName: 'Bruno',
+          lastName: 'Lemaire',
+        }),
       );
-      console.log(
-        '✅ enrollment.confirmed publié — parcours BC3 (re)généré pour Alice / p001',
-      );
+      console.log('✅ Apprenant démo cursus « classique » : Bruno Lemaire (learner-bob-classic)');
     }
+    await enrollIfMissing({ id: learnerBrunoClassicId, firstName: 'Bruno', lastName: 'Lemaire' });
+
+    /** Parcours BC3 @ bootstrap — évite une course où @OnEvent n’est pas encore branché. Alice : séquence courte / accélération ; Bruno : liste complète depuis le catalogue. */
+    await this.bootstrapAdaptivePathForLearner({
+      learnerId,
+      tenantId,
+      programId,
+      replaceWithDemoCompactSequence: true,
+    });
+    await this.bootstrapAdaptivePathForLearner({
+      learnerId: learnerBrunoClassicId,
+      tenantId,
+      programId,
+      replaceWithDemoCompactSequence: false,
+    });
 
     // 4. Create a Certification rule
     const certId = 'cert-dev-avance';
@@ -114,5 +140,51 @@ export class SeedService implements OnApplicationBootstrap {
     }
 
     console.log('🌳 Seeding complete!');
+  }
+
+  /** Construit ou reconstruit un parcours BC3 à partir de l’inscription (même flux que `enrollment.confirmed`). */
+  private async bootstrapAdaptivePathForLearner(params: {
+    learnerId: string;
+    tenantId: string;
+    programId: string;
+    replaceWithDemoCompactSequence: boolean;
+  }): Promise<void> {
+    const enrollments = await this.enrollmentRepo.findByLearner(params.learnerId);
+    const en = enrollments.find((e) => e.programId === params.programId);
+    if (!en) {
+      console.warn(
+        `Seed: pas d’inscription ${params.programId} pour ${params.learnerId} — parcours BC3 ignoré.`,
+      );
+      return;
+    }
+
+    try {
+      await this.identityToAdaptive.handleIdentityEvent(
+        new EnrollmentConfirmedEvent(
+          en.learnerId,
+          en.tenantId,
+          en.programId,
+          en.weeklyAvailabilityHours,
+          en.deadline,
+          en.enrolledAt,
+        ),
+      );
+
+      if (params.replaceWithDemoCompactSequence && params.learnerId === 'learner-alice') {
+        const path = await this.learningPathRepo.findByLearnerId(params.learnerId);
+        if (path) {
+          path.resetActivitiesSequence(buildAliceDemoCompactActivities());
+          await this.learningPathRepo.save(path);
+        }
+      }
+
+      console.log(
+        `✅ Parcours BC3 ${params.learnerId} — ${
+          params.replaceWithDemoCompactSequence ? 'séquence courte (démo accélération)' : 'catalogue complet (cursus « classique »)'
+        }`,
+      );
+    } catch (e) {
+      console.error(`❌ Parcours adaptatif impossible pour ${params.learnerId}. Cause :`, e);
+    }
   }
 }

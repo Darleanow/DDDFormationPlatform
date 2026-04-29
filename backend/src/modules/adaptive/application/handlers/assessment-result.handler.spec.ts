@@ -83,7 +83,13 @@ describe('AssessmentResultHandler', () => {
     acl         = { translateResult: jest.fn() } as any;
     remediation = { applyIfNeeded: jest.fn().mockReturnValue(false) } as any;
     acceleration = { applyIfEligible: jest.fn() } as any;
-    solver      = { solve: jest.fn().mockReturnValue({ feasible: true }), prioritizeMandatory: jest.fn() } as any;
+    solver      = {
+      solve: jest
+        .fn()
+        .mockReturnValue({ scheduleFeasible: true, uncoveredMandatoryCompetences: [] }),
+      prioritizeMandatory: jest.fn(),
+      scheduleRiskMessage: jest.fn().mockReturnValue(undefined),
+    } as any;
     repo        = { findByLearnerId: jest.fn(), save: jest.fn(), findById: jest.fn() } as any;
     eventEmitter = {
       emit: jest.fn(),

@@ -38,19 +38,24 @@ export class EnrollmentConfirmedHandler {
     this.sequencing.buildInitialSequence(path, event.catalogActivities);
 
     const result = this.solver.solve(path);
-    if (!result.feasible) {
+    if (!result.scheduleFeasible) {
       this.solver.prioritizeMandatory(path);
-      const failureResult = result;
-      // Dispatch coverage alert — listeners (front, monitoring) can react
-      await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
-        learnerId: event.learnerId,
-        pathId: path.id,
-        alertMessage: failureResult.alertMessage,
-        uncoveredCompetences: failureResult.uncoveredCompetences,
-      });
     }
 
     await this.repo.save(path);
+
+    // Après persistance — les listeners tiers ne peuvent pas bloquer l’enregistrement du parcours
+    if (!result.scheduleFeasible) {
+      const alertMessage = this.solver.scheduleRiskMessage(path);
+      if (alertMessage) {
+        await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
+          learnerId: event.learnerId,
+          pathId: path.id,
+          alertMessage,
+          uncoveredCompetences: result.uncoveredMandatoryCompetences,
+        });
+      }
+    }
 
     // Dispatch all domain events accumulated during path creation
     for (const domainEvent of path.pullDomainEvents()) {

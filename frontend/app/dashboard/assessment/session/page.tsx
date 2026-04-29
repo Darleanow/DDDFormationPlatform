@@ -5,15 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 import {
-  DEFAULT_LEARNER_ID,
   competencyIdFromAdaptiveAssessmentActivity,
   generateAdaptiveAssessment,
   processAdaptiveAssessmentAttempt,
 } from "@/lib/api";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 function AssessmentSessionContent() {
   const searchParams = useSearchParams();
   const rawContentId = searchParams.get("contentId");
+  const { learnerId } = useDemoLearnerId();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -58,7 +59,7 @@ function AssessmentSessionContent() {
       }
     }
     load();
-  }, [rawContentId]);
+  }, [rawContentId, learnerId]);
 
   const handleSimulateSubmit = async () => {
     if (!rawContentId) return;
@@ -73,13 +74,12 @@ function AssessmentSessionContent() {
           : `attempt-${Date.now()}`;
       const itemResults = itemsPreview.map((it) => ({ itemId: it.id, isCorrect: true }));
       await processAdaptiveAssessmentAttempt(rawContentId, attemptId, {
-        learnerId: DEFAULT_LEARNER_ID,
+        learnerId,
         questionCount: Math.max(itemsPreview.length, 1),
         durationSeconds: 120,
         itemResults,
         tenantId: "tenant-universite-lyon",
       });
-      // Path advance: BC4 → événement `assessment.result` → Adaptive `AssessmentResultHandler` (no duplicate POST complete-current).
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Échec soumission");

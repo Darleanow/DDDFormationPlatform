@@ -99,8 +99,7 @@ export class ProcessAssessmentAttemptUseCase {
         isSuspect,
       );
       this.eventEmitter.emit(event.constructor.name, event);
-    } else if (!anomaly) {
-      // Formative -> Update or create EstimatedLevel, then report to adaptive
+    } else {
       let estimatedLevelAgg = await this.estimatedLevelRepository.findByLearnerAndCompetency(
         attempt.getLearnerId(),
         interpretationResult.competencyId as CompetencyId,
@@ -111,19 +110,23 @@ export class ProcessAssessmentAttemptUseCase {
           attempt.getLearnerId(),
           interpretationResult.competencyId as CompetencyId,
           input.tenantId,
-          0.0 // Default baseline or fetch from somewhere
+          0.0,
         );
       }
 
-      // Update the smooth level and save
       estimatedLevelAgg.updateLevel(interpretationResult.interpretation.interpretedScore);
       await this.estimatedLevelRepository.save(estimatedLevelAgg);
 
-      // Report smoothed value to adaptive
+      const streakSignalScore = Math.max(
+        interpretationResult.interpretation.interpretedScore,
+        interpretationResult.interpretation.normalizedItemScoreRatio,
+      );
+
       await this.adaptiveEngine.submitScore({
         learnerId: attempt.getLearnerId(),
         competencyId: interpretationResult.competencyId,
         estimatedLevel: estimatedLevelAgg.currentLevelValue,
+        streakSignalScore,
         tenantId: input.tenantId,
       });
     }

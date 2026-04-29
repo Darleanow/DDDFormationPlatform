@@ -17,10 +17,10 @@ import {
   getModule,
   getProgrammes,
   getProgramModulesOverview,
-  DEFAULT_LEARNER_ID,
   type ModuleOverviewRow,
 } from "@/lib/api";
 import { catalogBc2StepHref } from "@/lib/adaptive-navigation";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 function stepBadge(type: string) {
   switch (type) {
@@ -40,6 +40,7 @@ function ModulePageContent({ params }: { params: Promise<{ id: string }> }) {
   const moduleId = resolvedParams.id;
   const searchParams = useSearchParams();
   const programQuery = searchParams.get("program");
+  const { learnerId } = useDemoLearnerId();
 
   const [moduleData, setModuleData] = useState<any>(null);
   const [moduleRow, setModuleRow] = useState<ModuleOverviewRow | null>(null);
@@ -48,6 +49,7 @@ function ModulePageContent({ params }: { params: Promise<{ id: string }> }) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     async function loadData() {
       try {
         setOverviewError(null);
@@ -64,7 +66,7 @@ function ModulePageContent({ params }: { params: Promise<{ id: string }> }) {
           return;
         }
 
-        const overview = await getProgramModulesOverview(DEFAULT_LEARNER_ID, programId).catch(
+        const overview = await getProgramModulesOverview(learnerId, programId).catch(
           (e: unknown) => {
             const msg = e instanceof Error ? e.message : String(e);
             throw new Error(msg);
@@ -89,7 +91,7 @@ function ModulePageContent({ params }: { params: Promise<{ id: string }> }) {
     return () => {
       cancelled = true;
     };
-  }, [moduleId, programQuery]);
+  }, [moduleId, programQuery, learnerId]);
 
   if (loading) {
     return (

@@ -1,22 +1,30 @@
 import { LearningPath } from '../entities/learning-path.entity';
 
-export type SolverResult =
-  | { feasible: true }
-  | { feasible: false; uncoveredCompetences: string[]; alertMessage: string };
+/**
+ * Sépare le risque « calendrier / charge » du simple « compétences obligatoires encore non couvertes »
+ * — cette dernière situation est normale tout au long du parcours et ne doit pas afficher une alerte rouge.
+ */
+export type SolverResult = {
+  /** True lorsque les heures encore PENDING tiennent dans la capacité semaine × semaines jusqu’à l’échéance. */
+  scheduleFeasible: boolean;
+  /** Compétences obligatoires absentes des activités COMPLETED encore (progression résiduelle attendue). */
+  uncoveredMandatoryCompetences: string[];
+};
 
 export class ConstraintSolverService {
   solve(path: LearningPath): SolverResult {
-    const uncovered = path.getMandatoryUncoveredCompetences();
+    const uncoveredMandatoryCompetences = path.getMandatoryUncoveredCompetences();
+    const scheduleFeasible = path.isCoverageFeasible();
+    return { scheduleFeasible, uncoveredMandatoryCompetences };
+  }
 
-    if (!path.isCoverageFeasible() || uncovered.length > 0) {
-      return {
-        feasible: false,
-        uncoveredCompetences: uncovered,
-        alertMessage: `Mandatory coverage at risk: cannot cover ${uncovered.length} required competence(s) within remaining time and availability`,
-      };
-    }
-
-    return { feasible: true };
+  scheduleRiskMessage(path: LearningPath): string | undefined {
+    if (path.isCoverageFeasible()) return undefined;
+    const n = path.getMandatoryUncoveredCompetences().length;
+    return (
+      `Charge horaire : le travail encore prévu (${n} compétence(s) obligatoire(s) pas encore acquises via le parcours) ` +
+      `semble excéder les créneaux disponibles avant l’échéance avec la disponibilité hebdomadaire actuelle.`
+    );
   }
 
   /**

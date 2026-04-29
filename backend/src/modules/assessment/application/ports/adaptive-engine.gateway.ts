@@ -5,6 +5,7 @@ export interface AdaptiveEngineGateway {
     learnerId: string;
     competencyId: string;
     estimatedLevel: number;
+    streakSignalScore?: number;
     tenantId?: string;
   }): Promise<void>;
 }

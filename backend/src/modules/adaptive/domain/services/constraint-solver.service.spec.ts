@@ -24,7 +24,33 @@ describe('ConstraintSolverService', () => {
       // All mandatory covered = yes because there are none.
 
       const result = solver.solve(path);
-      expect(result.feasible).toBe(true);
+      expect(result.scheduleFeasible).toBe(true);
+    });
+
+    it('returns scheduleFeasible true when mandatory competencies are still uncovered but no deadline / enough capacity', () => {
+      const path = LearningPath.create({
+        id: 'path-456',
+        learnerId: 'learner-1',
+        tenantId: 'tenant-1',
+        constraint: CoverageConstraint.from({
+          mandatoryCompetencyIds: ['c-a', 'c-b'],
+          weeklyHours: 10,
+        }),
+      });
+      const pending = new Activity(
+        'act-u',
+        'lesson-u',
+        'LESSON',
+        ['c-a'],
+        1,
+        0,
+      );
+      path.addActivity(pending);
+
+      const result = solver.solve(path);
+      expect(result.uncoveredMandatoryCompetences).toContain('c-a');
+      expect(result.uncoveredMandatoryCompetences).toContain('c-b');
+      expect(result.scheduleFeasible).toBe(true);
     });
 
     it('returns infeasible if there are uncovered mandatory competencies and not enough time', () => {
@@ -49,8 +75,8 @@ describe('ConstraintSolverService', () => {
       jest.spyOn(path, 'isCoverageFeasible').mockReturnValue(false);
 
       const result = solver.solve(path);
-      expect(result.feasible).toBe(false);
-      expect((result as any).uncoveredCompetences).toEqual(['c1', 'c2']);
+      expect(result.scheduleFeasible).toBe(false);
+      expect(result.uncoveredMandatoryCompetences).toEqual(['c1', 'c2']);
     });
   });
 

@@ -27,6 +27,10 @@ export class LearningPathOrmEntity {
   @Column('simple-json', { name: 'mandatory_competence_ids' })
   mandatoryCompetencyIds: string[];
 
+  /** Série BC3 : résultats d’évaluation consécutifs &gt; 90 % (pour accélération après 3). */
+  @Column('int', { name: 'assessment_success_streak_above90', default: 0 })
+  assessmentSuccessStreakAbove90: number;
+
   @Column('simple-json', { name: 'estimated_levels', nullable: true })
   estimatedLevels?: Array<{ competencyId: string; score: number }>;
 

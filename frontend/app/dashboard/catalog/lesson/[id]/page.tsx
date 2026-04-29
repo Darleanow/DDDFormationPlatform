@@ -3,12 +3,14 @@
 import { FileText, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { DEFAULT_LEARNER_ID, getLesson, getLearningPath, markActivityCompleted } from "@/lib/api";
+import { getLesson, getLearningPath, markActivityCompleted } from "@/lib/api";
 import { activityDetailHref } from "@/lib/adaptive-navigation";
+import { useDemoLearnerId } from "@/hooks/useDemoLearnerId";
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const lessonId = resolvedParams.id;
+  const { learnerId } = useDemoLearnerId();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
@@ -28,7 +30,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
         setCompletionError(null);
         const [data, path] = await Promise.all([
           getLesson(lessonId),
-          getLearningPath(DEFAULT_LEARNER_ID).catch(() => null),
+          getLearningPath(learnerId).catch(() => null),
         ]);
         setLesson(data);
         setPathLoaded(true);
@@ -50,7 +52,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
       }
     }
     loadData();
-  }, [lessonId]);
+  }, [lessonId, learnerId]);
 
   /** On ne peut valider cette page que si c’est l’étape suivante du parcours (sinon erreur 400 côté API). */
   const isNextAdaptiveStep =
@@ -65,7 +67,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     setCompleting(true);
     setCompletionError(null);
     try {
-      await markActivityCompleted(DEFAULT_LEARNER_ID, lessonId);
+      await markActivityCompleted(learnerId, lessonId);
       setCompleted(true);
     } catch (e) {
       console.error("Failed to mark as completed", e);

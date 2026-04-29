@@ -17,7 +17,13 @@ import { LearningPathCompletedEvent } from '../../domain/events/learning-path-co
 import { BC_INPROCESS_EVENT } from '../../../../shared/bc-integration/in-process-events';
 import { assessmentAggregateIdForCompetency } from '../../../../shared/bc-integration/assessment-ids';
 
+import { Activity } from '../../domain/entities/activity.entity';
+import type { LearningPath } from '../../domain/entities/learning-path.entity';
+
 export { AssessmentResultPayload };
+
+/** Score simulé lorsqu’une évaluation est cochée depuis l’UI sans passage BC4 — suffisant pour streak &gt; 90 % et pas de remédiation. */
+export const MANUAL_ASSESSMENT_UI_SCORE = 0.96;
 
 @Injectable()
 export class AssessmentResultHandler {
@@ -37,52 +43,71 @@ export class AssessmentResultHandler {
     if (!path) return;
 
     const expectedContentId = assessmentAggregateIdForCompetency(payload.competencyId);
-    const completedActivity = path.markNextPendingIfContentIdMatches(expectedContentId);
+    let completedActivity = path.markNextPendingIfContentIdMatches(expectedContentId);
+    if (!completedActivity) {
+      completedActivity = path.completePendingAssessmentWithContentId(expectedContentId);
+    }
 
-    // 1. ACL: translate BC4 payload → BC3's EstimatedLevel (always record level even if path order blocks completion)
+    await this.applyAssessmentResultToPath(path, payload, completedActivity);
+  }
+
+  /**
+   * Applique niveau, série d’accélération, remédiation, solveur — après qu’une ligne ASSESSMENT
+   * soit passée en COMPLETED soit par BC4 ({@link handle}), soit par l’adaptateur HTTP
+   * « terminer l’activité courante » ({@link MANUAL_ASSESSMENT_UI_SCORE} pour la démo bouton).
+   */
+  async applyAssessmentResultToPath(
+    path: LearningPath,
+    payload: AssessmentResultPayload,
+    completedActivity: Activity | undefined,
+  ): Promise<void> {
     const level = this.acl.translateResult(payload);
     path.updateLevel(level);
 
-    path.recordAssessmentActivityOutcome(completedActivity, level);
+    path.recordAssessmentActivityOutcome(
+      completedActivity,
+      level,
+      payload.streakSignalScore,
+    );
 
     if (path.checkCompletionStatus()) {
-      // ── Path is complete: aggregate scores and emit domain event ───────────
       path.completePath();
     } else {
-      // ── Normal adaptive flow: remédiation / accélération / contraintes ─────
-
       let remediated = false;
 
-      // Demander l'avis du domaine sur le besoin
       if (level.needsRemediation()) {
-        const remediationContent = await this.catalogGateway.findRemediationContent(level.getCompetencyId());
+        const remediationContent = await this.catalogGateway.findRemediationContent(
+          level.getCompetencyId(),
+        );
         if (remediationContent) {
-            remediated = this.remediation.applyIfNeeded(path, level, remediationContent);
+          remediated = this.remediation.applyIfNeeded(path, level, remediationContent);
         }
       }
 
       if (!remediated) {
-        this.acceleration.applyIfEligible(path, level);
+        const accelerated = this.acceleration.applyIfEligible(path, level);
+        if (accelerated) {
+          this.solver.prioritizeMandatory(path);
+        }
       }
 
-      // Re-evaluate constraints after path mutation
       const result = this.solver.solve(path);
-      if (!result.feasible) {
+      if (!result.scheduleFeasible) {
         this.solver.prioritizeMandatory(path);
-        const failureResult = result as { feasible: false; alertMessage: string; uncoveredCompetences: string[] };
-        await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
-          learnerId: payload.learnerId,
-          pathId: path.id,
-          alertMessage: failureResult.alertMessage,
-          uncoveredCompetences: failureResult.uncoveredCompetences,
-        });
+        const alertMessage = this.solver.scheduleRiskMessage(path);
+        if (alertMessage) {
+          await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
+            learnerId: payload.learnerId,
+            pathId: path.id,
+            alertMessage,
+            uncoveredCompetences: result.uncoveredMandatoryCompetences,
+          });
+        }
       }
     }
 
     await this.repo.save(path);
 
-    // Dispatch all domain events (PathUpdatedEvent, RemediationTriggeredEvent,
-    // LearningPathCompletedEvent, ...) accumulated during this transaction
     for (const domainEvent of path.pullDomainEvents()) {
       if (domainEvent instanceof LearningPathCompletedEvent) {
         await this.eventEmitter.emitAsync(
