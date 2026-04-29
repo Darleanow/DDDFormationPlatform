@@ -8,11 +8,11 @@ export class EnrollmentConfirmedEvent {
     public readonly constraints: {
       weeklyHours: number;
       deadline?: Date;
-      mandatoryCompetenceIds: string[];
+      mandatoryCompetencyIds: string[];
     },
     public readonly catalogActivities: Array<{
       contentId: string;
-      competenceIds: string[];
+      competencyIds: string[];
       estimatedHours: number;
       type: 'LESSON' | 'EXERCISE' | 'ASSESSMENT';
     }>,

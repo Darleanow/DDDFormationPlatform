@@ -1,4 +1,4 @@
-id,nom,description,ordre,coursId,competenceIds,prerequisIds
+id,nom,description,ordre,coursId,competencyIds,prerequisIds
 m001,Variables et typage statique,Déclaration de variables types primitifs et inférence de types.,1,cr001,c001,
 m002,Structures de contrôle et flux,Conditionnels boucles et gestion du flux d'exécution.,2,cr001,c002,
 m003,Fonctions pures et closures,Définition de fonctions passage d'arguments et portée des variables.,3,cr001,c003,m001

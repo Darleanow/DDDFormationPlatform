@@ -8,7 +8,7 @@ import { EstimatedLevel } from '../../domain/value-objects/estimated-level.vo';
 export class AssessmentResultPayload {
   constructor(
     public readonly learnerId: string,
-    public readonly competenceId: string,
+    public readonly competencyId: string,
     public readonly estimatedLevel: number,
   ) {}
 }
@@ -22,6 +22,6 @@ export class AssessmentAcl {
    */
   translateResult(payload: AssessmentResultPayload): EstimatedLevel {
     const clamped = Math.min(1, Math.max(0, payload.estimatedLevel));
-    return EstimatedLevel.from(payload.competenceId, clamped);
+    return EstimatedLevel.from(payload.competencyId, clamped);
   }
 }

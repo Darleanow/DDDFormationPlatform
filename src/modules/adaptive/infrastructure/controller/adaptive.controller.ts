@@ -12,7 +12,7 @@ export class ActivityDto {
   id: string;
   contentId: string;
   type: string;
-  competenceIds: string[];
+  competencyIds: string[];
   estimatedHours: number;
   order: number;
   status: string;
@@ -187,7 +187,7 @@ export class AdaptiveController {
       id: activity.id,
       contentId: activity.contentId,
       type: activity.type,
-      competenceIds: activity.competenceIds,
+      competencyIds: activity.competencyIds,
       estimatedHours: activity.estimatedHours,
       order: activity.order,
       status: activity.getStatus().toString(),

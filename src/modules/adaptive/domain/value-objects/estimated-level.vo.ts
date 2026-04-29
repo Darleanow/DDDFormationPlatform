@@ -1,12 +1,12 @@
 export class EstimatedLevel {
   private constructor(
-    private readonly competenceId: string,
-    private readonly score: number, // 0.0 → 1.0
+    private readonly competencyId: string,
+    private readonly score: number,
   ) {}
 
-  static from(competenceId: string, score: number): EstimatedLevel {
+  static from(competencyId: string, score: number): EstimatedLevel {
     if (score < 0 || score > 1) throw new Error(`Invalid score: ${score}`);
-    return new EstimatedLevel(competenceId, score);
+    return new EstimatedLevel(competencyId, score);
   }
 
   isMastered(): boolean {
@@ -29,7 +29,7 @@ export class EstimatedLevel {
     return this.score;
   }
 
-  getCompetenceId(): string {
-    return this.competenceId;
+  getCompetencyId(): string {
+    return this.competencyId;
   }
 }

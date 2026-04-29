@@ -8,17 +8,17 @@ export class InMemoryAssessmentItemRepository
 
   constructor(initialData?: Record<string, AssessmentItem[]>) {
     if (initialData) {
-      for (const [competenceId, items] of Object.entries(initialData)) {
-        this.store.set(competenceId, [...items]);
+      for (const [competencyId, items] of Object.entries(initialData)) {
+        this.store.set(competencyId, [...items]);
       }
     }
   }
 
-  async findByCompetenceId(competenceId: string): Promise<AssessmentItem[]> {
-    return this.store.get(competenceId) ?? [];
+  async findByCompetencyId(competencyId: string): Promise<AssessmentItem[]> {
+    return this.store.get(competencyId) ?? [];
   }
 
-  seed(competenceId: string, items: AssessmentItem[]): void {
-    this.store.set(competenceId, [...items]);
+  seed(competencyId: string, items: AssessmentItem[]): void {
+    this.store.set(competencyId, [...items]);
   }
 }

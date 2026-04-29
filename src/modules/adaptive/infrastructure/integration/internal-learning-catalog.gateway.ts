@@ -10,10 +10,10 @@ export class InternalLearningCatalogGateway implements LearningCatalogGateway {
   constructor(private readonly catalogQueryService: CatalogQueryService) {}
 
   async findRemediationContent(
-    competenceId: string,
+    competencyId: string,
   ): Promise<RemediationContent | null> {
     const modules = await this.catalogQueryService.findModulesByCompetence(
-      competenceId,
+      competencyId,
     );
 
     if (modules && modules.length > 0) {

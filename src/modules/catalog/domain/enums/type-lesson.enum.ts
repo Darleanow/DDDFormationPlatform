@@ -1,0 +1,6 @@
+export enum TypeLesson {
+  TEXTE = 'TEXTE',
+  VIDEO = 'VIDEO',
+  SIMULATION = 'SIMULATION',
+  INTERACTIF = 'INTERACTIF',
+}

@@ -6,6 +6,9 @@ import { PathUpdatedEvent } from '../events/path-updated.event';
 import { LearningPathCompletedEvent } from '../events/learning-path-completed.event';
 
 export class LearningPath {
+  /** Count of consecutive assessment activities completed with score strictly above 90% (0.9). */
+  private assessmentSuccessStreakAbove90 = 0;
+
   private activities: Activity[] = [];
   private levels: Map<string, EstimatedLevel> = new Map();
   private domainEvents: object[] = [];
@@ -54,17 +57,17 @@ export class LearningPath {
       new RemediationTriggeredEvent(
         this.id,
         this.learnerId,
-        remediation.competenceIds,
+        remediation.competencyIds,
       ),
     );
   }
 
-  skipActivitiesForCompetences(competenceIds: string[]): void {
+  skipActivitiesForCompetences(competencyIds: string[]): void {
     this.activities
       .filter(
         (a) =>
           a.isPending() &&
-          a.competenceIds.every((c) => competenceIds.includes(c)),
+          a.competencyIds.every((c) => competencyIds.includes(c)),
       )
       .forEach((a) => a.skip());
 
@@ -90,11 +93,38 @@ export class LearningPath {
   // ── Estimated level ────────────────────────────────────────────────────────
 
   updateLevel(level: EstimatedLevel): void {
-    this.levels.set(level.getCompetenceId(), level);
+    this.levels.set(level.getCompetencyId(), level);
   }
 
-  getLevelFor(competenceId: string): EstimatedLevel | undefined {
-    return this.levels.get(competenceId);
+  /**
+   * Call after completing the current pending activity when the result is tied to an assessment.
+   * Spec: acceleration after three consecutive evaluations with score &gt; 90%.
+   */
+  recordAssessmentActivityOutcome(
+    completedActivity: Activity | undefined,
+    level: EstimatedLevel,
+  ): void {
+    if (!completedActivity || completedActivity.type !== 'ASSESSMENT') {
+      this.assessmentSuccessStreakAbove90 = 0;
+      return;
+    }
+    if (level.value() > 0.9) {
+      this.assessmentSuccessStreakAbove90 += 1;
+    } else {
+      this.assessmentSuccessStreakAbove90 = 0;
+    }
+  }
+
+  shouldAccelerateAfterConsecutiveHighScores(): boolean {
+    return this.assessmentSuccessStreakAbove90 >= 3;
+  }
+
+  resetAccelerationStreak(): void {
+    this.assessmentSuccessStreakAbove90 = 0;
+  }
+
+  getLevelFor(competencyId: string): EstimatedLevel | undefined {
+    return this.levels.get(competencyId);
   }
 
   // ── Constraints ────────────────────────────────────────────────────────────
@@ -110,10 +140,10 @@ export class LearningPath {
     const covered = new Set(
       this.activities
         .filter((a) => a.isCompleted())
-        .flatMap((a) => a.competenceIds),
+        .flatMap((a) => a.competencyIds),
     );
     return this.constraint
-      .getMandatoryCompetenceIds()
+      .getMandatoryCompetencyIds()
       .filter((c) => !covered.has(c));
   }
 
@@ -131,7 +161,7 @@ export class LearningPath {
     const hasPending = this.activities.some(a => a.isPending());
     if (hasPending) return false;
 
-    const mandatoryIds = this.constraint.getMandatoryCompetenceIds();
+    const mandatoryIds = this.constraint.getMandatoryCompetencyIds();
     const allMandatoryEvaluated = mandatoryIds.every(id => this.levels.has(id));
 
     return allMandatoryEvaluated;
@@ -140,10 +170,6 @@ export class LearningPath {
   /**
    * Completes the path and emits `LearningPathCompletedEvent`.
    * - Calculates globalScore as the average of all recorded competence levels.
-   * - Flags competences with score < 0.5 as `isCriticalFailure`.
-   *   BC5 applies its own "compétence critique" rules on top of this data.
-   *
-   * @throws if the path is not yet completable (guard against early calls).
    */
   completePath(): void {
     if (!this.checkCompletionStatus()) {
@@ -152,15 +178,15 @@ export class LearningPath {
       );
     }
 
-    const competences = [...this.levels.entries()].map(([competenceId, level]) => ({
-      competenceId,
+    const competencyResults = [...this.levels.entries()].map(([competencyId, level]) => ({
+      competencyId,
       score: level.value(),
-      isCriticalFailure: level.isInsufficient(), // score < 0.5
     }));
 
     const globalScore =
-      competences.length > 0
-        ? competences.reduce((sum, c) => sum + c.score, 0) / competences.length
+      competencyResults.length > 0
+        ? competencyResults.reduce((sum, c) => sum + c.score, 0) /
+          competencyResults.length
         : 0;
 
     this.domainEvents.push(
@@ -169,7 +195,7 @@ export class LearningPath {
         this.learnerId,
         this.targetCertificationId,
         globalScore,
-        competences,
+        competencyResults,
       ),
     );
   }
@@ -212,6 +238,7 @@ export class LearningPath {
     targetCertificationId?: string;
     activities?: Activity[];
     levels?: EstimatedLevel[];
+    assessmentSuccessStreakAbove90?: number;
   }): LearningPath {
     const path = new LearningPath(
       props.id,
@@ -223,9 +250,10 @@ export class LearningPath {
 
     path.activities = [...(props.activities ?? [])];
     path.levels = new Map(
-      (props.levels ?? []).map((level) => [level.getCompetenceId(), level]),
+      (props.levels ?? []).map((level) => [level.getCompetencyId(), level]),
     );
     path.domainEvents = [];
+    path.assessmentSuccessStreakAbove90 = props.assessmentSuccessStreakAbove90 ?? 0;
     return path;
   }
 }

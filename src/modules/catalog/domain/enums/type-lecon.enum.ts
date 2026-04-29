@@ -1,6 +1,0 @@
-export enum TypeLecon {
-  TEXTE = 'TEXTE',
-  VIDEO = 'VIDEO',
-  SIMULATION = 'SIMULATION',
-  INTERACTIF = 'INTERACTIF',
-}

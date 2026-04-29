@@ -1,26 +1,26 @@
 export class CoverageConstraint {
   private constructor(
-    private readonly mandatoryCompetenceIds: string[],
+    private readonly mandatoryCompetencyIds: string[],
     private readonly deadlineAt: Date | null,
     private readonly weeklyHours: number,
   ) {}
 
   static from(props: {
-    mandatoryCompetenceIds: string[];
+    mandatoryCompetencyIds: string[];
     deadlineAt?: Date;
     weeklyHours: number;
   }): CoverageConstraint {
     if (props.weeklyHours <= 0)
       throw new Error('Weekly availability is invalid !');
     return new CoverageConstraint(
-      props.mandatoryCompetenceIds,
+      props.mandatoryCompetencyIds,
       props.deadlineAt ?? null,
       props.weeklyHours,
     );
   }
 
-  getMandatoryCompetenceIds(): string[] {
-    return [...this.mandatoryCompetenceIds];
+  getMandatoryCompetencyIds(): string[] {
+    return [...this.mandatoryCompetencyIds];
   }
 
   getWeeklyHours(): number {

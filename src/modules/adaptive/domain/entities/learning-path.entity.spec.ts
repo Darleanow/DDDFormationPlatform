@@ -12,17 +12,17 @@ function buildPath(mandatoryIds: string[] = ['c1', 'c2']): LearningPath {
     learnerId: 'learner-test',
     tenantId: 'tenant-test',
     targetCertificationId: 'cert-test-001',
-    constraint: CoverageConstraint.from({ mandatoryCompetenceIds: mandatoryIds, weeklyHours: 10 }),
+    constraint: CoverageConstraint.from({ mandatoryCompetencyIds: mandatoryIds, weeklyHours: 10 }),
   });
 }
 
 function addAndCompleteActivity(
   path: LearningPath,
   id: string,
-  competenceIds: string[],
+  competencyIds: string[],
   order: number,
 ): Activity {
-  const activity = new Activity(id, `content-${id}`, 'ASSESSMENT', competenceIds, 1, order);
+  const activity = new Activity(id, `content-${id}`, 'ASSESSMENT', competencyIds, 1, order);
   path.addActivity(activity);
   activity.complete();
   return activity;
@@ -167,38 +167,26 @@ describe('LearningPath – completePath()', () => {
     path.completePath();
 
     const [event] = path.pullDomainEvents() as LearningPathCompletedEvent[];
-    expect(event.competences).toHaveLength(2);
-    expect(event.competences.map(c => c.competenceId)).toEqual(
+    expect(event.competencyResults).toHaveLength(2);
+    expect(event.competencyResults.map((c) => c.competencyId)).toEqual(
       expect.arrayContaining(['c1', 'c2']),
     );
   });
 
-  it('flags competences with score < 0.5 as isCriticalFailure = true', () => {
+  it('carries raw scores for each competence (certification rules belong to BC5)', () => {
     const path = buildPath(['c1', 'c2']);
     addAndCompleteActivity(path, 'a1', ['c1'], 0);
     addAndCompleteActivity(path, 'a2', ['c2'], 1);
-    path.updateLevel(EstimatedLevel.from('c1', 0.8));  // passes
-    path.updateLevel(EstimatedLevel.from('c2', 0.45)); // insufficient → critical failure
+    path.updateLevel(EstimatedLevel.from('c1', 0.8));
+    path.updateLevel(EstimatedLevel.from('c2', 0.45));
     path.pullDomainEvents();
 
     path.completePath();
 
     const [event] = path.pullDomainEvents() as LearningPathCompletedEvent[];
-    const c1 = event.competences.find(c => c.competenceId === 'c1')!;
-    const c2 = event.competences.find(c => c.competenceId === 'c2')!;
-    expect(c1.isCriticalFailure).toBe(false);
-    expect(c2.isCriticalFailure).toBe(true);
-  });
-
-  it('isCriticalFailure is false when score is exactly 0.5', () => {
-    const path = buildPath(['c1']);
-    addAndCompleteActivity(path, 'a1', ['c1'], 0);
-    path.updateLevel(EstimatedLevel.from('c1', 0.5)); // boundary — not insufficient
-    path.pullDomainEvents();
-
-    path.completePath();
-
-    const [event] = path.pullDomainEvents() as LearningPathCompletedEvent[];
-    expect(event.competences[0].isCriticalFailure).toBe(false);
+    const c1 = event.competencyResults.find((c) => c.competencyId === 'c1')!;
+    const c2 = event.competencyResults.find((c) => c.competencyId === 'c2')!;
+    expect(c1.score).toBe(0.8);
+    expect(c2.score).toBe(0.45);
   });
 });

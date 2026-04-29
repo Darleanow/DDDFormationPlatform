@@ -24,11 +24,11 @@ export class LearningPathOrmEntity {
   @Column('timestamptz', { name: 'deadline_at', nullable: true })
   deadlineAt?: Date | null;
 
-  @Column('jsonb', { name: 'mandatory_competence_ids' })
-  mandatoryCompetenceIds: string[];
+  @Column('simple-json', { name: 'mandatory_competence_ids' })
+  mandatoryCompetencyIds: string[];
 
-  @Column('jsonb', { name: 'estimated_levels', nullable: true })
-  estimatedLevels?: Array<{ competenceId: string; score: number }>;
+  @Column('simple-json', { name: 'estimated_levels', nullable: true })
+  estimatedLevels?: Array<{ competencyId: string; score: number }>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

@@ -18,7 +18,7 @@ describe('Adaptive domain services', () => {
         learnerId: 'learner-1',
         tenantId: 'tenant-1',
         constraint: CoverageConstraint.from({
-          mandatoryCompetenceIds: ['algorithmique-recursive'],
+          mandatoryCompetencyIds: ['algorithmique-recursive'],
           weeklyHours: 10,
         }),
       });
@@ -55,7 +55,7 @@ describe('Adaptive domain services', () => {
       expect(result).toBe(true);
       const activities = path.getActivities();
       expect(activities[0].type).toBe('REMEDIATION');
-      expect(activities[0].competenceIds).toEqual(['algorithmique-recursive']);
+      expect(activities[0].competencyIds).toEqual(['algorithmique-recursive']);
       expect(activities[1].id).toBe('activity-1');
       expect(activities[2].id).toBe('activity-2');
     });
@@ -66,7 +66,7 @@ describe('Adaptive domain services', () => {
         learnerId: 'learner-2',
         tenantId: 'tenant-2',
         constraint: CoverageConstraint.from({
-          mandatoryCompetenceIds: ['c1'],
+          mandatoryCompetencyIds: ['c1'],
           weeklyHours: 10,
         }),
       });
@@ -92,47 +92,43 @@ describe('Adaptive domain services', () => {
   });
 
   describe('AccelerationService', () => {
-    it('skips same-competence pending activities and recommends the next available module', () => {
-      const path = LearningPath.create({
+    it('skips same-competence pending activities after three consecutive assessment scores strictly above 90%', () => {
+      const path = LearningPath.reconstitute({
         id: 'path-3',
         learnerId: 'learner-3',
         tenantId: 'tenant-3',
         constraint: CoverageConstraint.from({
-          mandatoryCompetenceIds: ['algorithmique-recursive'],
+          mandatoryCompetencyIds: ['algorithmique-recursive'],
           weeklyHours: 10,
         }),
+        activities: [
+          new Activity(
+            'activity-3',
+            'content-3',
+            'LESSON',
+            ['algorithmique-recursive'],
+            1,
+            1,
+          ),
+          new Activity(
+            'activity-4',
+            'content-4',
+            'EXERCISE',
+            ['algorithmique-recursive'],
+            1,
+            2,
+          ),
+          new Activity(
+            'activity-5',
+            'content-5',
+            'LESSON',
+            ['programmation-fonctionnelle'],
+            2,
+            3,
+          ),
+        ],
+        assessmentSuccessStreakAbove90: 3,
       });
-
-      path.addActivity(
-        new Activity(
-          'activity-3',
-          'content-3',
-          'LESSON',
-          ['algorithmique-recursive'],
-          1,
-          1,
-        ),
-      );
-      path.addActivity(
-        new Activity(
-          'activity-4',
-          'content-4',
-          'EXERCISE',
-          ['algorithmique-recursive'],
-          1,
-          2,
-        ),
-      );
-      path.addActivity(
-        new Activity(
-          'activity-5',
-          'content-5',
-          'LESSON',
-          ['programmation-fonctionnelle'],
-          2,
-          3,
-        ),
-      );
 
       const service = new AccelerationService();
       const level = EstimatedLevel.from('algorithmique-recursive', 0.92);
@@ -160,7 +156,7 @@ describe('Adaptive domain services', () => {
         learnerId: 'learner-4',
         tenantId: 'tenant-4',
         constraint: CoverageConstraint.from({
-          mandatoryCompetenceIds: ['algorithmique-recursive'],
+          mandatoryCompetencyIds: ['algorithmique-recursive'],
           weeklyHours: 2,
           deadlineAt: deadline,
         }),
@@ -185,7 +181,7 @@ describe('Adaptive domain services', () => {
         expect(result.uncoveredCompetences).toContain(
           'algorithmique-recursive',
         );
-        expect(result.alertMessage).toContain('Skill uncovered');
+        expect(result.alertMessage).toContain('Mandatory coverage at risk');
       }
     });
 
@@ -196,7 +192,7 @@ describe('Adaptive domain services', () => {
         learnerId: 'learner-5',
         tenantId: 'tenant-5',
         constraint: CoverageConstraint.from({
-          mandatoryCompetenceIds: ['algorithmique-recursive'],
+          mandatoryCompetencyIds: ['algorithmique-recursive'],
           weeklyHours: 2,
           deadlineAt: deadline,
         }),

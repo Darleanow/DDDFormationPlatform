@@ -1,5 +1,5 @@
 import { GenerateAssessmentUseCase } from './generate-assessment.use-case';
-import { StaticEstimatedLevelDifficultyPolicy } from '../policies/estimated-level-difficulty.policy';
+import { StaticAdaptiveDifficultyService } from '../services/adaptive-difficulty.service';
 import { DifficultyRange } from '../../domain/value-objects/difficulty-range';
 import { InMemoryAssessmentItemRepository } from '../../infrastructure/persistence/in-memory/in-memory-assessment-item.repository';
 import { InMemoryAssessmentRepository } from '../../infrastructure/persistence/in-memory/in-memory-assessment.repository';
@@ -18,19 +18,19 @@ describe('GenerateAssessmentUseCase', () => {
       'skill-1': items,
     });
     const assessmentRepository = new InMemoryAssessmentRepository();
-    const difficultyPolicy = new StaticEstimatedLevelDifficultyPolicy({
+    const adaptiveDifficulty = new StaticAdaptiveDifficultyService({
       intermediaire: new DifficultyRange(0.4, 0.7),
     });
 
     const useCase = new GenerateAssessmentUseCase(
       assessmentRepository,
       itemRepository,
-      difficultyPolicy,
+      adaptiveDifficulty,
     );
 
     const result = await useCase.execute({
       assessmentId: 'assessment-1',
-      competenceId: 'skill-1',
+      competencyId: 'skill-1',
       estimatedLevel: 'intermediaire',
     });
 

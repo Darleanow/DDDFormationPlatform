@@ -1,4 +1,4 @@
-import { RegleObtention } from './regle-obtention.entity';
+import { IssuanceRule } from './issuance-rule.entity';
 
 /**
  * Aggregate Root : L'entité centrale de ce Bounded Context.
@@ -10,7 +10,7 @@ export class Certification {
     public readonly id: string,
     public readonly tenantId: string, // Isolation Multi-Tenant
     public readonly titre: string,
-    public readonly regles: RegleObtention, // Les conditions spécifiques associées
+    public readonly regles: IssuanceRule, // Les conditions spécifiques associées
   ) {}
 
   /**

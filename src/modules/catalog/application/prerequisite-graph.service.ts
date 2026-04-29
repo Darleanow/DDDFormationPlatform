@@ -15,10 +15,10 @@ export class PrerequisiteGraphService {
     /**
      * Vérifie si les compétences validées par un apprenant lui permettent d’accéder à un module.
      * @param moduleId - L’ID du module cible
-     * @param validatedCompetenceIds - Liste des CompetenceId déjà validés par l’apprenant (provenant de BC4/BC5)
+     * @param validatedCompetencyIds - Liste des CompetencyId déjà validés par l’apprenant (provenant de BC4/BC5)
      * @returns Un objet indiquant l'accès et la liste des prérequis non satisfaits.
      */
-    async checkAccess(moduleId: string, validatedCompetenceIds: string[]): Promise<AccessCheckResult> {
+    async checkAccess(moduleId: string, validatedCompetencyIds: string[]): Promise<AccessCheckResult> {
         const module = await this.catalogQueryService.findModuleById(moduleId);
         if (!module) {
             throw new Error(`Module ${moduleId} non trouvé`);
@@ -28,7 +28,7 @@ export class PrerequisiteGraphService {
         // Vérifier les modules prérequis directs
         for (const prereqModule of module.prerequis) {
             // Un prérequis de type module est considéré satisfait si au moins une des compétences qu'il couvre est validée
-            const hasPrereq = prereqModule.competences.some(c => validatedCompetenceIds.includes(c.id));
+            const hasPrereq = prereqModule.competences.some(c => validatedCompetencyIds.includes(c.id));
             if (!hasPrereq) {
                 missing.push({ id: prereqModule.id, titre: prereqModule.nom });
             }

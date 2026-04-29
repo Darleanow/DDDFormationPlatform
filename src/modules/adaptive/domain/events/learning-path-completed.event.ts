@@ -22,14 +22,12 @@ export class LearningPathCompletedEvent {
     public readonly globalScore: number,
 
     /**
-     * Per-competence breakdown.
-     * isCriticalFailure = true when the final score < 0.5 (EstimatedLevel.isInsufficient()).
-     * BC5 applies its own "compétence critique" rules on top of this data.
+     * Per-competence estimated scores (0–1 from BC4/BC3). Certification rules (including
+     * issuance rules including critical competency checks) are applied only in BC5.
      */
-    public readonly competences: Array<{
-      competenceId: string;
+    public readonly competencyResults: Array<{
+      competencyId: string;
       score: number;
-      isCriticalFailure: boolean;
     }>,
   ) {}
 }

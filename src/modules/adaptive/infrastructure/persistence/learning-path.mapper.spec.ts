@@ -12,7 +12,7 @@ describe('LearningPathMapper', () => {
       learnerId: 'learner-1',
       tenantId: 'tenant-1',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['c1'],
+        mandatoryCompetencyIds: ['c1'],
         weeklyHours: 5,
         deadlineAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       }),
@@ -24,9 +24,9 @@ describe('LearningPathMapper', () => {
     path.updateLevel(EstimatedLevel.from('c1', 0.6));
 
     const ormEntity = LearningPathMapper.toOrm(path);
-    expect(ormEntity.mandatoryCompetenceIds).toEqual(['c1']);
+    expect(ormEntity.mandatoryCompetencyIds).toEqual(['c1']);
     expect(ormEntity.estimatedLevels).toEqual([
-      { competenceId: 'c1', score: 0.6 },
+      { competencyId: 'c1', score: 0.6 },
     ]);
     expect(ormEntity.activities).toHaveLength(1);
 

@@ -2,11 +2,11 @@
 import { Controller, Get, Param, Query, ParseArrayPipe, NotFoundException } from '@nestjs/common';
 import { CatalogQueryService } from '../application/catalog-query.service';
 import { PrerequisiteGraphService } from '../application/prerequisite-graph.service';
-import { Programme } from '../domain/entities/programme.entity';
-import { Cours } from '../domain/entities/cours.entity';
+import { Program } from '../domain/entities/program.entity';
+import { Course } from '../domain/entities/course.entity';
 import { Module } from '../domain/entities/module.entity';
-import { Lecon } from '../domain/entities/lecon.entity';
-import { Exercice } from '../domain/entities/exercice.entity';
+import { Lesson } from '../domain/entities/lesson.entity';
+import { Exercise } from '../domain/entities/exercise.entity';
 import { Competence } from '../domain/entities/competence.entity';
 
 @Controller('catalog')
@@ -18,31 +18,31 @@ export class CatalogController {
 
     // --- Programmes ---
     @Get('programmes')
-    async getProgrammes(): Promise<Programme[]> {
+    async getProgrammes(): Promise<Program[]> {
         return this.catalogQuery.findAllProgrammes();
     }
 
     @Get('programmes/:id')
-    async getProgramme(@Param('id') id: string): Promise<Programme> {
+    async getProgramme(@Param('id') id: string): Promise<Program> {
         const prog = await this.catalogQuery.findProgrammeById(id);
         if (!prog) throw new NotFoundException('Programme non trouvé');
         return prog;
     }
 
-    @Get('programmes/:id/cours')
-    async getCoursByProgramme(@Param('id') id: string): Promise<Cours[]> {
+    @Get('programmes/:id/course')
+    async getCoursByProgramme(@Param('id') id: string): Promise<Course[]> {
         return this.catalogQuery.findCoursByProgramme(id);
     }
 
-    // --- Cours ---
-    @Get('cours/:id')
-    async getCours(@Param('id') id: string): Promise<Cours> {
-        const cours = await this.catalogQuery.findCoursById(id);
-        if (!cours) throw new NotFoundException('Cours non trouvé');
-        return cours;
+    // --- Course ---
+    @Get('course/:id')
+    async getCours(@Param('id') id: string): Promise<Course> {
+        const course = await this.catalogQuery.findCoursById(id);
+        if (!course) throw new NotFoundException('Course non trouvé');
+        return course;
     }
 
-    @Get('cours/:id/modules')
+    @Get('course/:id/modules')
     async getModulesByCours(@Param('id') id: string): Promise<Module[]> {
         return this.catalogQuery.findModulesByCours(id);
     }
@@ -56,7 +56,7 @@ export class CatalogController {
     }
 
     @Get('modules/:id/lecons')
-    async getLeconsByModule(@Param('id') id: string): Promise<Lecon[]> {
+    async getLeconsByModule(@Param('id') id: string): Promise<Lesson[]> {
         return this.catalogQuery.findLeconsByModule(id);
     }
 
@@ -79,22 +79,22 @@ export class CatalogController {
 
     // --- Leçons ---
     @Get('lecons/:id')
-    async getLecon(@Param('id') id: string): Promise<Lecon> {
-        const lecon = await this.catalogQuery.findLeconById(id);
-        if (!lecon) throw new NotFoundException('Leçon non trouvée');
-        return lecon;
+    async getLecon(@Param('id') id: string): Promise<Lesson> {
+        const lesson = await this.catalogQuery.findLeconById(id);
+        if (!lesson) throw new NotFoundException('Leçon non trouvée');
+        return lesson;
     }
 
-    @Get('lecons/:id/exercices')
-    async getExercicesByLecon(@Param('id') id: string): Promise<Exercice[]> {
+    @Get('lecons/:id/exercises')
+    async getExercicesByLecon(@Param('id') id: string): Promise<Exercise[]> {
         return this.catalogQuery.findExercicesByLecon(id);
     }
 
     // --- Exercices ---
-    @Get('exercices/:id')
-    async getExercice(@Param('id') id: string): Promise<Exercice> {
+    @Get('exercises/:id')
+    async getExercice(@Param('id') id: string): Promise<Exercise> {
         const exo = await this.catalogQuery.findExerciceById(id);
-        if (!exo) throw new NotFoundException('Exercice non trouvé');
+        if (!exo) throw new NotFoundException('Exercise non trouvé');
         return exo;
     }
 

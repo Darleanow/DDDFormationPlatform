@@ -45,14 +45,14 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
     const learnerIndex = new Map<string, string>();
     (this as any)._learnerIndex = learnerIndex;
 
-    // ── Scénario 1 : Parcours standard en cours (remédiation déjà insérée) ───
+    // ── Scénario 1 : Parcours standard en course (remédiation déjà insérée) ───
     const path1 = LearningPath.reconstitute({
       id: 'path-alice-001',
       learnerId: 'learner-alice',
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'algorithmique-recursive',
           'programmation-objet',
         ],
@@ -123,7 +123,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-logiciel-avance',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'structures-donnees',
           'complexite-algorithmique',
         ],
@@ -182,7 +182,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       ],
       levels: [
         EstimatedLevel.from('structures-donnees', 0.93), // maîtrise → eligible accélération
-        EstimatedLevel.from('complexite-algorithmique', 0.55), // en cours
+        EstimatedLevel.from('complexite-algorithmique', 0.55), // en course
       ],
     });
     this.store.set(path2.id, path2);
@@ -195,7 +195,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-entreprise-x',
       targetCertificationId: 'cert-securite-systemes',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: [
+        mandatoryCompetencyIds: [
           'securite-web',
           'cryptographie',
           'gestion-vulnerabilites',
@@ -283,7 +283,7 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
       tenantId: 'tenant-universite-lyon',
       targetCertificationId: 'cert-developpement-web-js',
       constraint: CoverageConstraint.from({
-        mandatoryCompetenceIds: ['javascript-core', 'javascript-async'],
+        mandatoryCompetencyIds: ['javascript-core', 'javascript-async'],
         weeklyHours: 10,
       }),
       activities: [act4a, act4b],

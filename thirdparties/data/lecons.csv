@@ -1,4 +1,4 @@
-id,titre,contenu,type,ordre,moduleId,competenceIds
+id,titre,contenu,type,ordre,moduleId,competencyIds
 l001,Introduction aux types primitifs,Présentation des types int float boolean string et leurs subtilités selon les langages.,TEXTE,1,m001,c001
 l002,Inférence de types et annotations,Comment le compilateur déduit les types et quand annoter explicitement.,VIDEO,2,m001,c001
 l003,Types composés et alias,Tuples enums unions et création d'alias de types pour un code expressif.,INTERACTIF,3,m001,c001

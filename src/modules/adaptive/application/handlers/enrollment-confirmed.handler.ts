@@ -1,29 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'crypto';
 import { LearningPath } from '../../domain/entities/learning-path.entity';
 import { CoverageConstraint } from '../../domain/value-objects/coverage-constraint.vo';
-import { SequencingService } from '../../domain/services/sequencing.service';
+import { PathSequencingService } from '../../domain/services/path-sequencing.service';
 import { ConstraintSolverService } from '../../domain/services/constraint-solver.service';
 import { LearningPathRepository } from '../../domain/repositories/learning-path.repository';
 import { EnrollmentConfirmedEvent } from '../events/enrollment-confirmed.event';
+import { BC_INPROCESS_EVENT } from '../../../../shared/bc-integration/in-process-events';
 
 export { EnrollmentConfirmedEvent };
 
 @Injectable()
 export class EnrollmentConfirmedHandler {
   constructor(
-    private readonly sequencing: SequencingService,
+    private readonly sequencing: PathSequencingService,
     private readonly solver: ConstraintSolverService,
     private readonly repo: LearningPathRepository,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @OnEvent('enrollment.confirmed')
   async handle(event: EnrollmentConfirmedEvent): Promise<void> {
     const constraint = CoverageConstraint.from({
-      mandatoryCompetenceIds: event.constraints.mandatoryCompetenceIds,
+      mandatoryCompetencyIds: event.constraints.mandatoryCompetencyIds,
       weeklyHours: event.constraints.weeklyHours,
       deadlineAt: event.constraints.deadline,
     });
@@ -43,7 +42,7 @@ export class EnrollmentConfirmedHandler {
       this.solver.prioritizeMandatory(path);
       const failureResult = result;
       // Dispatch coverage alert — listeners (front, monitoring) can react
-      this.eventEmitter.emit('adaptive.coverage.alert', {
+      await this.eventEmitter.emitAsync(BC_INPROCESS_EVENT.ADAPTIVE_COVERAGE_AT_RISK, {
         learnerId: event.learnerId,
         pathId: path.id,
         alertMessage: failureResult.alertMessage,
@@ -56,7 +55,7 @@ export class EnrollmentConfirmedHandler {
     // Dispatch all domain events accumulated during path creation
     for (const domainEvent of path.pullDomainEvents()) {
       const eventName = domainEvent.constructor.name;
-      this.eventEmitter.emit(eventName, domainEvent);
+      await this.eventEmitter.emitAsync(eventName, domainEvent);
     }
   }
 }

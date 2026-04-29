@@ -12,7 +12,7 @@ export class Activity {
     public readonly id: string,
     public readonly contentId: string, // ID in BC2
     public readonly type: ActivityType,
-    public readonly competenceIds: string[],
+    public readonly competencyIds: string[],
     public readonly estimatedHours: number,
     public readonly order: number,
     status?: ActivityStatus,

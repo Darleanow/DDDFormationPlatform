@@ -9,5 +9,5 @@ export interface LearningCatalogGateway {
   /**
    * Fetches a module piece (a remedial lesson/exercise) suited for learning a specific competence
    */
-  findRemediationContent(competenceId: string): Promise<RemediationContent | null>;
+  findRemediationContent(competencyId: string): Promise<RemediationContent | null>;
 }

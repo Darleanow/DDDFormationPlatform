@@ -2,13 +2,13 @@ import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Programme } from '../src/modules/catalog/domain/entities/programme.entity.js';
-import { Cours } from '../src/modules/catalog/domain/entities/cours.entity.js';
+import { Program } from '../src/modules/catalog/domain/entities/program.entity.js';
+import { Course } from '../src/modules/catalog/domain/entities/course.entity.js';
 import { Module } from '../src/modules/catalog/domain/entities/module.entity.js';
-import { Lecon } from '../src/modules/catalog/domain/entities/lecon.entity.js';
-import { Exercice } from '../src/modules/catalog/domain/entities/exercice.entity.js';
+import { Lesson } from '../src/modules/catalog/domain/entities/lesson.entity.js';
+import { Exercise } from '../src/modules/catalog/domain/entities/exercise.entity.js';
 import { Competence } from '../src/modules/catalog/domain/entities/competence.entity.js';
-import { TypeLecon } from '../src/modules/catalog/domain/enums/type-lecon.enum.js';
+import { TypeLesson } from '../src/modules/catalog/domain/enums/type-lesson.enum.js';
 
 /**
  * Seed script — BC2 Learning Catalog only.
@@ -22,7 +22,7 @@ const CatalogDataSource = new DataSource({
   username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASS ?? 'postgres',
   database: process.env.DB_NAME ?? 'formation_platform',
-  entities: [Programme, Cours, Module, Lecon, Exercice, Competence],
+  entities: [Program, Course, Module, Lesson, Exercise, Competence],
   synchronize: true,
   logging: true,
 });
@@ -71,28 +71,28 @@ async function genererMocksCatalogue() {
     await manager.query('DELETE FROM "exercice_competence"');
     await manager.query('DELETE FROM "module_competence"');
     await manager.query('DELETE FROM "module_prerequis"');
-    await manager.query('DELETE FROM "exercice"');
-    await manager.query('DELETE FROM "lecon"');
+    await manager.query('DELETE FROM "exercise"');
+    await manager.query('DELETE FROM "lesson"');
     await manager.query('DELETE FROM "module"');
-    await manager.query('DELETE FROM "cours"');
-    await manager.query('DELETE FROM "programme"');
+    await manager.query('DELETE FROM "course"');
+    await manager.query('DELETE FROM "program"');
     await manager.query('DELETE FROM "competence"');
     console.log(`[${new Date().toISOString()}] Données catalogue existantes effacées.`);
 
     // --- Read Data ---
     const competencesData = readCsv('competences.csv');
     const programmesData = readCsv('programmes.csv');
-    const coursData = readCsv('cours.csv');
+    const coursData = readCsv('course.csv');
     const modulesData = readCsv('modules.csv');
     const leconsData = readCsv('lecons.csv');
-    const exercicesData = readCsv('exercices.csv');
+    const exercicesData = readCsv('exercises.csv');
 
     // Maps for resolving IDs
     const competenceMap = new Map<string, Competence>();
-    const programmeMap = new Map<string, Programme>();
-    const coursMap = new Map<string, Cours>();
+    const programmeMap = new Map<string, Program>();
+    const coursMap = new Map<string, Course>();
     const moduleMap = new Map<string, Module>();
-    const moduleLeconsMap = new Map<string, Lecon[]>();
+    const moduleLeconsMap = new Map<string, Lesson[]>();
 
     // --- Compétences ---
     for (const data of competencesData) {
@@ -106,7 +106,7 @@ async function genererMocksCatalogue() {
 
     // --- Programmes ---
     for (const data of programmesData) {
-      const p = new Programme();
+      const p = new Program();
       p.nom = data.nom;
       p.description = data.description;
       p.objectifPrincipal = data.objectifPrincipal;
@@ -116,9 +116,9 @@ async function genererMocksCatalogue() {
     }
     console.log(`[${new Date().toISOString()}] ${programmesData.length} programmes générés.`);
 
-    // --- Cours ---
+    // --- Course ---
     for (const data of coursData) {
-      const c = new Cours();
+      const c = new Course();
       c.nom = data.nom;
       c.description = data.description;
       c.ordre = parseInt(data.ordre, 10);
@@ -126,7 +126,7 @@ async function genererMocksCatalogue() {
       const saved = await manager.save(c);
       coursMap.set(data.id, saved);
     }
-    console.log(`[${new Date().toISOString()}] ${coursData.length} cours générés.`);
+    console.log(`[${new Date().toISOString()}] ${coursData.length} course générés.`);
 
     // --- Modules (First Pass: Create) ---
     for (const data of modulesData) {
@@ -136,7 +136,7 @@ async function genererMocksCatalogue() {
       m.ordre = parseInt(data.ordre, 10);
       m.coursId = coursMap.get(data.coursId)!.id;
       
-      const compIds = data.competenceIds ? data.competenceIds.split('|') : [];
+      const compIds = data.competencyIds ? data.competencyIds.split('|') : [];
       m.competences = compIds.map((id: string) => competenceMap.get(id)!);
       m.prerequis = []; // Handled in second pass
       
@@ -157,14 +157,14 @@ async function genererMocksCatalogue() {
 
     // --- Leçons ---
     for (const data of leconsData) {
-      const l = new Lecon();
+      const l = new Lesson();
       l.titre = data.titre;
       l.contenu = data.contenu;
-      l.type = data.type as TypeLecon;
+      l.type = data.type as TypeLesson;
       l.ordre = parseInt(data.ordre, 10);
       l.moduleId = moduleMap.get(data.moduleId)!.id;
       
-      const compIds = data.competenceIds ? data.competenceIds.split('|') : [];
+      const compIds = data.competencyIds ? data.competencyIds.split('|') : [];
       l.competences = compIds.map((id: string) => competenceMap.get(id)!);
       
       const saved = await manager.save(l);
@@ -177,7 +177,7 @@ async function genererMocksCatalogue() {
 
     // --- Exercices ---
     for (const data of exercicesData) {
-      const e = new Exercice();
+      const e = new Exercise();
       e.titre = data.titre;
       e.description = data.description;
       e.enonce = data.enonce;
@@ -185,17 +185,17 @@ async function genererMocksCatalogue() {
       
       const leconsInModule = moduleLeconsMap.get(data.moduleId);
       if (!leconsInModule || leconsInModule.length === 0) {
-        console.warn(`[${new Date().toISOString()}] ⚠️ Exercice ${data.id} ignoré : aucun leçon dans le module ${data.moduleId}`);
+        console.warn(`[${new Date().toISOString()}] ⚠️ Exercise ${data.id} ignoré : aucun leçon dans le module ${data.moduleId}`);
         continue;
       }
       e.leconId = leconsInModule[0].id;
       
-      const compIds = data.competenceIds ? data.competenceIds.split('|') : [];
+      const compIds = data.competencyIds ? data.competencyIds.split('|') : [];
       e.competences = compIds.map((id: string) => competenceMap.get(id)!);
       
       await manager.save(e);
     }
-    console.log(`[${new Date().toISOString()}] ${exercicesData.length} exercices générés.`);
+    console.log(`[${new Date().toISOString()}] ${exercicesData.length} exercises générés.`);
 
     console.log(`[${new Date().toISOString()}] ✅ Tous les mocks catalogue (depuis CSV) ont été générés avec succès !`);
   } catch (error) {

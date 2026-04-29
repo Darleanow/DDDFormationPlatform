@@ -19,7 +19,7 @@ export class AssessmentController {
   async generate(@Body() body: GenerateAssessmentDto) {
     return this.generateAssessment.execute({
       assessmentId: body.assessmentId,
-      competenceId: body.competenceId,
+      competencyId: body.competencyId,
       estimatedLevel: body.estimatedLevel,
       tenantId: body.tenantId,
     });

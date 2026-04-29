@@ -23,7 +23,7 @@ function buildCompletingPath(): LearningPath {
     tenantId: 'tenant-test',
     targetCertificationId: 'cert-completion-test',
     constraint: CoverageConstraint.from({
-      mandatoryCompetenceIds: ['c1'],
+      mandatoryCompetencyIds: ['c1'],
       weeklyHours: 10,
     }),
     activities: [activity],
@@ -44,7 +44,7 @@ function buildNonCompletingPath(): LearningPath {
     tenantId: 'tenant-test',
     targetCertificationId: 'cert-ongoing',
     constraint: CoverageConstraint.from({
-      mandatoryCompetenceIds: ['c1'],
+      mandatoryCompetencyIds: ['c1'],
       weeklyHours: 10,
     }),
     activities: [a1, a2],
@@ -61,7 +61,7 @@ describe('AssessmentResultHandler', () => {
   let acceleration: jest.Mocked<AccelerationService>;
   let solver: jest.Mocked<ConstraintSolverService>;
   let repo: jest.Mocked<LearningPathRepository>;
-  let eventEmitter: { emit: jest.Mock };
+  let eventEmitter: { emit: jest.Mock; emitAsync: jest.Mock };
   let catalogGateway: any;
 
   beforeEach(() => {
@@ -70,7 +70,10 @@ describe('AssessmentResultHandler', () => {
     acceleration = { applyIfEligible: jest.fn() } as any;
     solver      = { solve: jest.fn().mockReturnValue({ feasible: true }), prioritizeMandatory: jest.fn() } as any;
     repo        = { findByLearnerId: jest.fn(), save: jest.fn(), findById: jest.fn() } as any;
-    eventEmitter = { emit: jest.fn() };
+    eventEmitter = {
+      emit: jest.fn(),
+      emitAsync: jest.fn().mockResolvedValue(undefined),
+    };
     catalogGateway = { findRemediationContent: jest.fn().mockResolvedValue({ contentId: 'rem-id', estimatedHours: 1 }) };
 
     handler = new AssessmentResultHandler(
@@ -104,11 +107,16 @@ describe('AssessmentResultHandler', () => {
     await handler.handle(basePayload);
 
     // The event should have been emitted
-    const emittedNames = (eventEmitter.emit as jest.Mock).mock.calls.map(([name]) => name);
+    const emittedNames = (
+      [...(eventEmitter.emitAsync as jest.Mock).mock.calls, ...(eventEmitter.emit as jest.Mock).mock.calls] as [
+        string,
+      ][]
+    ).map(([name]) => name);
     expect(emittedNames).toContain('LearningPathCompletedEvent');
 
-    // Retrieve the actual event object
-    const completedCall = (eventEmitter.emit as jest.Mock).mock.calls.find(
+    // Retrieve the actual event object (LearningPathCompletedEvent is dispatched via emitAsync)
+    const allCalls = [...(eventEmitter.emitAsync as jest.Mock).mock.calls];
+    const completedCall = allCalls.find(
       ([name]) => name === 'LearningPathCompletedEvent',
     );
     const emittedEvent: LearningPathCompletedEvent = completedCall![1];
@@ -117,24 +125,24 @@ describe('AssessmentResultHandler', () => {
     expect(emittedEvent.learnerId).toBe('learner-eve');
     expect(emittedEvent.targetCertificationId).toBe('cert-completion-test');
     expect(emittedEvent.globalScore).toBeCloseTo(0.85, 5);
-    expect(emittedEvent.competences[0].competenceId).toBe('c1');
-    expect(emittedEvent.competences[0].isCriticalFailure).toBe(false);
+    expect(emittedEvent.competencyResults[0].competencyId).toBe('c1');
+    expect(emittedEvent.competencyResults[0].score).toBeCloseTo(0.85, 5);
   });
 
-  it('sets isCriticalFailure = true in the event when score is insufficient', async () => {
+  it('includes the raw estimated score in the completion event even when low', async () => {
     const path = buildCompletingPath();
     repo.findByLearnerId.mockResolvedValue(path);
 
-    // Low score → insufficient
     acl.translateResult.mockReturnValue(EstimatedLevel.from('c1', 0.3));
 
     await handler.handle(basePayload);
 
-    const completedCall = (eventEmitter.emit as jest.Mock).mock.calls.find(
+    const allCalls = [...(eventEmitter.emitAsync as jest.Mock).mock.calls];
+    const completedCall = allCalls.find(
       ([name]) => name === 'LearningPathCompletedEvent',
     );
     const emittedEvent: LearningPathCompletedEvent = completedCall![1];
-    expect(emittedEvent.competences[0].isCriticalFailure).toBe(true);
+    expect(emittedEvent.competencyResults[0].score).toBeCloseTo(0.3, 5);
   });
 
   it('does NOT emit LearningPathCompletedEvent when the path still has pending activities', async () => {
@@ -144,7 +152,11 @@ describe('AssessmentResultHandler', () => {
 
     await handler.handle(basePayload);
 
-    const emittedNames = (eventEmitter.emit as jest.Mock).mock.calls.map(([name]) => name);
+    const emittedNames = (
+      [...(eventEmitter.emitAsync as jest.Mock).mock.calls, ...(eventEmitter.emit as jest.Mock).mock.calls] as [
+        string,
+      ][]
+    ).map(([name]) => name);
     expect(emittedNames).not.toContain('LearningPathCompletedEvent');
   });
 

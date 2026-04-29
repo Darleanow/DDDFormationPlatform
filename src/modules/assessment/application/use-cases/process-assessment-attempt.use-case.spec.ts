@@ -1,6 +1,6 @@
 import { ProcessAssessmentAttemptUseCase } from './process-assessment-attempt.use-case';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
-import { BehavioralAnomalyDetector } from '../../domain/services/behavioral-anomaly-detector';
+import { AnomalyDetectionService } from '../../domain/services/anomaly-detection.service';
 import {
   AssessmentAttemptStatus,
   ManualReviewStatus,
@@ -11,6 +11,7 @@ import { AssessmentItem } from '../../domain/aggregates/assessment/assessment-it
 import { Assessment } from '../../domain/aggregates/assessment/assessment';
 import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { AssessmentResultInterpreter } from '../../domain/services/assessment-result-interpreter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 class FakeAdaptiveEngineGateway implements AdaptiveEngineGateway {
   submitted = false;
@@ -25,7 +26,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const assessmentRepository = new InMemoryAssessmentRepository();
     const attemptRepository = new InMemoryAssessmentAttemptRepository();
     const adaptiveGateway = new FakeAdaptiveEngineGateway();
-    const anomalyDetector = new BehavioralAnomalyDetector({
+    const anomalyDetectionService = new AnomalyDetectionService({
       minQuestionCount: 20,
       maxDurationSeconds: 45,
       signal: 'FAST_RESPONSE',
@@ -44,11 +45,15 @@ describe('ProcessAssessmentAttemptUseCase', () => {
       assessmentRepository,
       interpreter,
     );
+    const eventEmitter = new EventEmitter2();
     const useCase = new ProcessAssessmentAttemptUseCase(
       interpretResult,
       attemptRepository,
+      assessmentRepository,
       adaptiveGateway,
-      anomalyDetector,
+      anomalyDetectionService,
+      eventEmitter,
+      { findByLearnerAndCompetency: jest.fn(), save: jest.fn() } as any,
     );
 
     const result = await useCase.execute({
@@ -73,7 +78,7 @@ describe('ProcessAssessmentAttemptUseCase', () => {
     const assessmentRepository = new InMemoryAssessmentRepository();
     const attemptRepository = new InMemoryAssessmentAttemptRepository();
     const adaptiveGateway = new FakeAdaptiveEngineGateway();
-    const anomalyDetector = new BehavioralAnomalyDetector({
+    const anomalyDetectionService = new AnomalyDetectionService({
       minQuestionCount: 20,
       maxDurationSeconds: 45,
       signal: 'FAST_RESPONSE',
@@ -92,11 +97,15 @@ describe('ProcessAssessmentAttemptUseCase', () => {
       assessmentRepository,
       interpreter,
     );
+    const eventEmitter = new EventEmitter2();
     const useCase = new ProcessAssessmentAttemptUseCase(
       interpretResult,
       attemptRepository,
+      assessmentRepository,
       adaptiveGateway,
-      anomalyDetector,
+      anomalyDetectionService,
+      eventEmitter,
+      { findByLearnerAndCompetency: jest.fn(), save: jest.fn() } as any,
     );
 
     const result = await useCase.execute({

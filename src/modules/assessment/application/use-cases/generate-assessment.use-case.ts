@@ -1,11 +1,11 @@
 import { Assessment } from '../../domain/aggregates/assessment/assessment';
 import { AssessmentItemRepository } from '../../domain/repositories/assessment-item-repository';
 import { AssessmentRepository } from '../../domain/repositories/assessment-repository';
-import { EstimatedLevelDifficultyPolicy } from '../policies/estimated-level-difficulty.policy';
+import type { AdaptiveDifficultyService } from '../services/adaptive-difficulty.service';
 
 export interface GenerateAssessmentInput {
   assessmentId: string;
-  competenceId: string;
+  competencyId: string;
   estimatedLevel: string;
   tenantId?: string;
 }
@@ -25,14 +25,14 @@ export class GenerateAssessmentUseCase {
   constructor(
     private readonly assessments: AssessmentRepository,
     private readonly items: AssessmentItemRepository,
-    private readonly difficultyPolicy: EstimatedLevelDifficultyPolicy,
+    private readonly adaptiveDifficulty: AdaptiveDifficultyService,
   ) {}
 
   async execute(
     input: GenerateAssessmentInput,
   ): Promise<GenerateAssessmentResult> {
-    const availableItems = await this.items.findByCompetenceId(input.competenceId);
-    const difficultyRange = this.difficultyPolicy.getRangeFor(
+    const availableItems = await this.items.findByCompetencyId(input.competencyId);
+    const difficultyRange = this.adaptiveDifficulty.getRangeFor(
       input.estimatedLevel,
     );
 

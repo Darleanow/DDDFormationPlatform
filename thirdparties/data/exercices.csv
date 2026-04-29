@@ -1,4 +1,4 @@
-id,titre,description,enonce,ordre,moduleId,competenceIds,difficulty,weight
+id,titre,description,enonce,ordre,moduleId,competencyIds,difficulty,weight
 e001,Typage d'une mini-bibliothèque,Modéliser les types d'une bibliothèque de prêt de livres.,Créer les types Book Member et Loan avec les alias appropriés. Utiliser l'inférence là où c'est possible.,1,m001,c001,0.3,1
 e002,Contrôle de flux : calculatrice,Implémenter une calculatrice avec gestion des cas limites.,Écrire une fonction calculate(op string a number b number) gérant +  - * / avec pattern matching et toutes les erreurs.,1,m002,c002,0.4,1
 e003,Bibliothèque de fonctions pures,Écrire un ensemble de fonctions utilitaires pures.,Implémenter map filter reduce et zip sans muter les tableaux d'entrée. Chaque fonction doit être testable sans setup.,1,m003,c003,0.5,2

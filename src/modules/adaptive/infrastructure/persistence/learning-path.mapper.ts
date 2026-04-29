@@ -9,13 +9,13 @@ import { EstimatedLevel } from '../../domain/value-objects/estimated-level.vo';
 export class LearningPathMapper {
   static toDomain(entity: LearningPathOrmEntity): LearningPath {
     const constraint = CoverageConstraint.from({
-      mandatoryCompetenceIds: entity.mandatoryCompetenceIds,
+      mandatoryCompetencyIds: entity.mandatoryCompetencyIds,
       weeklyHours: entity.weeklyHours,
       deadlineAt: entity.deadlineAt ?? undefined,
     });
 
     const levels = (entity.estimatedLevels ?? []).map((level) =>
-      EstimatedLevel.from(level.competenceId, level.score),
+      EstimatedLevel.from(level.competencyId, level.score),
     );
 
     const activities = (entity.activities ?? [])
@@ -25,7 +25,7 @@ export class LearningPathMapper {
             a.id,
             a.contentId,
             a.type as any,
-            a.competenceIds,
+            a.competencyIds,
             a.estimatedHours,
             a.order,
             ActivityStatus.fromString(a.status),
@@ -50,15 +50,15 @@ export class LearningPathMapper {
     entity.tenantId = path.tenantId;
     entity.weeklyHours = path.getConstraint().getWeeklyHours();
     entity.deadlineAt = path.getConstraint().getDeadline();
-    entity.mandatoryCompetenceIds = path
+    entity.mandatoryCompetencyIds = path
       .getConstraint()
-      .getMandatoryCompetenceIds();
+      .getMandatoryCompetencyIds();
     entity.activities = path.getActivities().map((activity) => {
       const activityEntity = new ActivityOrmEntity();
       activityEntity.id = activity.id;
       activityEntity.contentId = activity.contentId;
       activityEntity.type = activity.type;
-      activityEntity.competenceIds = activity.competenceIds;
+      activityEntity.competencyIds = activity.competencyIds;
       activityEntity.estimatedHours = activity.estimatedHours;
       activityEntity.order = activity.order;
       activityEntity.status = activity.getStatus().toString();
@@ -66,7 +66,7 @@ export class LearningPathMapper {
       return activityEntity;
     });
     entity.estimatedLevels = path.getLevels().map((level) => ({
-      competenceId: level.getCompetenceId(),
+      competencyId: level.getCompetencyId(),
       score: level.value(),
     }));
     return entity;

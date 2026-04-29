@@ -12,7 +12,7 @@ export interface InterpretAssessmentResultInput {
 
 export interface InterpretAssessmentResultOutput {
   assessmentId: string;
-  competenceId: string;
+  competencyId: string;
   interpretation: AssessmentResultInterpretation;
 }
 
@@ -38,7 +38,7 @@ export class InterpretAssessmentResultUseCase {
 
     return {
       assessmentId: assessment.getId(),
-      competenceId: items[0]?.getCompetenceId() || 'unknown-competence', // Assuming assessment targets one competence
+      competencyId: items[0]?.getCompetencyId() || 'unknown-competency',
       interpretation,
     };
   }

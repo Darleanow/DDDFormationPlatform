@@ -1,4 +1,4 @@
-import { RegleObtention } from '../entities/regle-obtention.entity';
+import { IssuanceRule } from '../entities/issuance-rule.entity';
 import { ValidationCompetence } from '../value-objects/validation-competence.value-object';
 import { ScoreGlobalInsuffisantException } from '../exceptions/score-global-insuffisant.exception';
 import { CompetenceCritiqueEnEchecException } from '../exceptions/competence-critique-en-echec.exception';
@@ -19,7 +19,7 @@ export class RuleEngineService {
    * @returns true si éligible, sinon lève une exception de domaine.
    */
   evaluer(
-    regles: RegleObtention,
+    regles: IssuanceRule,
     scoreApprenant: number,
     validationsApprenant: ValidationCompetence[],
   ): boolean {
@@ -32,12 +32,12 @@ export class RuleEngineService {
 
     // 2. Vérification des Compétences Critiques (échecs éliminatoires)
     const competencesEnEchec = validationsApprenant.filter(
-      (v) => !v.estValidee,
+      (v) => !v.isValidated,
     );
     for (const echec of competencesEnEchec) {
-      if (regles.estUneCompetenceCritique(echec.competenceId)) {
+      if (regles.estUneCompetenceCritique(echec.competencyId)) {
         throw new CompetenceCritiqueEnEchecException(
-          `La compétence critique "${echec.competenceId}" est en échec, certification impossible.`,
+          `La compétence critique "${echec.competencyId}" est en échec, certification impossible.`,
         );
       }
     }
@@ -45,8 +45,8 @@ export class RuleEngineService {
     // 3. Vérification des Compétences Obligatoires
     const competencesValideesIds = new Set(
       validationsApprenant
-        .filter((v) => v.estValidee)
-        .map((v) => v.competenceId),
+        .filter((v) => v.isValidated)
+        .map((v) => v.competencyId),
     );
 
     for (const obligatoireId of regles.competencesObligatoires) {

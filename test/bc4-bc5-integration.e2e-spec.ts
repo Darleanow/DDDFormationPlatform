@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AssessmentModule } from '../src/modules/assessment/assessment.module';
 import { CertificationModule } from '../src/modules/certification/certification.module';
 
-import { AssessmentRepository, ASSESSMENT_REPOSITORY } from '../src/modules/assessment/domain/repositories/assessment-repository';
+import {
+  AssessmentRepository,
+  ASSESSMENT_REPOSITORY,
+} from '../src/modules/assessment/domain/repositories/assessment-repository';
 import { AssessmentAttemptRepository, ASSESSMENT_ATTEMPT_REPOSITORY } from '../src/modules/assessment/domain/repositories/assessment-attempt-repository';
 import { AdaptiveEngineGateway, ADAPTIVE_ENGINE_GATEWAY } from '../src/modules/assessment/application/ports/adaptive-engine.gateway';
 
@@ -11,26 +14,34 @@ import { ProcessAssessmentAttemptUseCase } from '../src/modules/assessment/appli
 import { AssessmentItemResult } from '../src/modules/assessment/domain/services/score-calculator';
 import { Assessment } from '../src/modules/assessment/domain/aggregates/assessment/assessment';
 import { AssessmentItem } from '../src/modules/assessment/domain/aggregates/assessment/assessment-item';
-import { DifficultyRange } from '../src/modules/assessment/domain/value-objects/difficulty-range';
 
 import { ICertificationRepository } from '../src/modules/certification/domain/repositories/certification.repository.interface';
-import { IDelivranceRepository } from '../src/modules/certification/domain/repositories/delivrance.repository.interface';
-import { ITentativeCertificationRepository } from '../src/modules/certification/domain/repositories/tentative-certification.repository.interface';
+import { IIssuanceRepository } from '../src/modules/certification/domain/repositories/issuance.repository.interface';
+import { ICertificationAttemptRepository } from '../src/modules/certification/domain/repositories/certification-attempt.repository.interface';
 import { Certification } from '../src/modules/certification/domain/entities/certification.entity';
-import { RegleObtention } from '../src/modules/certification/domain/entities/regle-obtention.entity';
-import { CompetenceId } from '../src/shared/competence-id';
+import { IssuanceRule } from '../src/modules/certification/domain/entities/issuance-rule.entity';
+import { CompetencyId } from '../src/shared/competency-id';
+import { InMemoryIssuanceRepository } from '../src/modules/certification/infrastructure/repositories/in-memory-issuance.repository';
+import { InMemoryAttemptRepository } from '../src/modules/certification/infrastructure/repositories/in-memory-attempt.repository';
 
 describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
   let moduleRef: TestingModule;
   let processAttempt: ProcessAssessmentAttemptUseCase;
-  let delivranceRepo: any;
-  let tentativeRepo: any;
+  let issuanceRepo: InMemoryIssuanceRepository;
+  let tentativeRepo: InMemoryAttemptRepository;
 
   beforeAll(async () => {
-    // Basic mocks for BC4 dependencies
-    const mockAssessmentsRepo = {
-      findById: jest.fn(),
-    };
+    // Minimal in-memory repo so CompetenceAssessmentsBootstrap (onModuleInit) can call save()
+    const assessmentsById = new Map<string, Assessment>();
+    const mockAssessmentsRepo: Pick<AssessmentRepository, 'findById' | 'save'> =
+      {
+        findById: jest.fn((id: string) =>
+          Promise.resolve(assessmentsById.get(id) ?? null),
+        ),
+        save: jest.fn(async (a: Assessment) => {
+          assessmentsById.set(a.getId(), a);
+        }),
+      };
     const mockAttemptsRepo = {
       save: jest.fn(),
     };
@@ -60,17 +71,21 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
     
     // Grab BC5 repositories (which use InMemory defaults)
     const certRepo = moduleRef.get<ICertificationRepository>('ICertificationRepository') as any;
-    delivranceRepo = moduleRef.get<IDelivranceRepository>('IDelivranceRepository');
-    tentativeRepo = moduleRef.get<ITentativeCertificationRepository>('ITentativeCertificationRepository');
+    issuanceRepo = moduleRef.get<IIssuanceRepository>(
+      'IIssuanceRepository',
+    ) as InMemoryIssuanceRepository;
+    tentativeRepo = moduleRef.get<ICertificationAttemptRepository>(
+      'ICertificationAttemptRepository',
+    ) as InMemoryAttemptRepository;
 
     // 1. Arrange Certification Data
     const certif = new Certification(
       'CERT-AWS', // id
       'tenant-A', // tenantId
       'AWS Dev', // titre
-      new RegleObtention(
+      new IssuanceRule(
         0.5, 
-        new Set(['comp-1' as CompetenceId]), 
+        new Set(['comp-1' as CompetencyId]), 
         new Set([]),
         2 
       )
@@ -80,22 +95,20 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
     // 2. Arrange Assessment Data
     const assessment = new Assessment(
       'ASSESS-123',
-      [
-        new AssessmentItem('item-1', 'comp-1', 0.5, 1)
-      ],
+      [new AssessmentItem('item-1', 'comp-1', 0.5, 1)],
       'CERTIFICATIVE',
-      'CERT-AWS'
+      'CERT-AWS',
     );
-    mockAssessmentsRepo.findById.mockResolvedValue(assessment);
+    assessmentsById.set(assessment.getId(), assessment);
   });
 
   afterEach(() => {
     // Nettoyer les repos InMemory entre chaque test pour ne pas polluer les autres
-    delivranceRepo.items.length = 0;
+    issuanceRepo.items.length = 0;
     tentativeRepo.items.length = 0;
   });
 
-  it('devrait échouer silencieusement si la tentative est considérée suspecte par BC4', async () => {
+  it('devrait échouer silencieusement si la attempt est considérée suspecte par BC4', async () => {
     const itemResults: AssessmentItemResult[] = [
       { itemId: 'item-1', isCorrect: true, timeSpentSeconds: 1 } // Super fast -> Will flag anomaly
     ];
@@ -111,12 +124,12 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
 
     await new Promise(resolve => setTimeout(resolve, 50)); // Wait for Async Events
 
-    expect(delivranceRepo.items).toHaveLength(0); // No certification
-    // tentative shouldn't be counted for suspect? Or maybe it is?
+    expect(issuanceRepo.items).toHaveLength(0); // No certification
+    // attempt shouldn't be counted for suspect? Or maybe it is?
     // Based on our logic in listener: if suspect, it returns early.
   });
 
-  it('devrait valider la tentative, incrémenter le nombre et délivrer le certificat', async () => {
+  it('devrait valider la attempt, incrémenter le nombre et délivrer le certificat', async () => {
     const itemResults: AssessmentItemResult[] = [
       { itemId: 'item-1', isCorrect: true, timeSpentSeconds: 60 } // Normal time
     ];
@@ -132,22 +145,22 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
 
     await new Promise(resolve => setTimeout(resolve, 50)); // Allow async Event to process
 
-    const tentatives = tentativeRepo.items;
-    expect(tentatives).toHaveLength(1);
-    expect(tentatives[0].nbTentativesEffectuees).toBe(1);
+    const attempts = tentativeRepo.items;
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0].nbTentativesEffectuees).toBe(1);
 
-    const delivrances = delivranceRepo.items;
-    expect(delivrances).toHaveLength(1);
-    expect(delivrances[0].learnerId).toBe('bob-888');
-    expect(delivrances[0].certificationId).toBe('CERT-AWS');
+    const issuances = issuanceRepo.items;
+    expect(issuances).toHaveLength(1);
+    expect(issuances[0].learnerId).toBe('bob-888');
+    expect(issuances[0].certificationId).toBe('CERT-AWS');
   });
 
-  it('ne devrait pas délivrer lors de la 3e tentative si max=2', async () => {
+  it('ne devrait pas délivrer lors de la 3e attempt si max=2', async () => {
     const itemResults: AssessmentItemResult[] = [
       { itemId: 'item-1', isCorrect: true, timeSpentSeconds: 60 }
     ];
 
-    // Force 2ième tentative
+    // Force 2ième attempt
     await processAttempt.execute({
       learnerId: 'lucas-999',
       assessmentId: 'ASSESS-123',
@@ -156,7 +169,7 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
       durationSeconds: 300,
       itemResults,
     });
-    // Force 3ième tentative
+    // Force 3ième attempt
     await processAttempt.execute({
       learnerId: 'lucas-999',
       assessmentId: 'ASSESS-123',
@@ -172,8 +185,8 @@ describe('Integration BC4 (Assessment) and BC5 (Certification)', () => {
     expect(tentativeLucas.nbTentativesEffectuees).toBe(2);
 
     // Filter to only lucas
-    const delivrancesLucas = delivranceRepo.items.filter(d => d.learnerId === 'lucas-999');
-    expect(delivrancesLucas.length).toBeGreaterThan(0); // Should have gotten one on first valid try
+    const issuancesLucas = issuanceRepo.items.filter(d => d.learnerId === 'lucas-999');
+    expect(issuancesLucas.length).toBeGreaterThan(0); // Should have gotten one on first valid try
   });
 
 });

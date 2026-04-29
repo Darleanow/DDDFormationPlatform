@@ -5,12 +5,15 @@ import {
 } from '../../domain/aggregates/assessment/assessment-attempt';
 import { AssessmentAttemptRepository } from '../../domain/repositories/assessment-attempt-repository';
 import { AssessmentRepository } from '../../domain/repositories/assessment-repository';
-import { BehavioralAnomalyDetector } from '../../domain/services/behavioral-anomaly-detector';
+import { AnomalyDetectionService } from '../../domain/services/anomaly-detection.service';
 import { AssessmentItemResult } from '../../domain/services/score-calculator';
 import { AdaptiveEngineGateway } from '../ports/adaptive-engine.gateway';
 import { InterpretAssessmentResultUseCase } from './interpret-assessment-result.use-case';
 import { CertificativeAssessmentScoredEvent } from '../../domain/events/certificative-assessment-scored.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EstimatedLevelRepository } from '../../domain/repositories/estimated-level.repository';
+import { EstimatedLevel } from '../../domain/aggregates/estimated-level/estimated-level.aggregate';
+import { CompetencyId } from '../../../../shared/competency-id';
 
 export interface ProcessAssessmentAttemptInput {
   learnerId: string;
@@ -44,8 +47,9 @@ export class ProcessAssessmentAttemptUseCase {
     private readonly attempts: AssessmentAttemptRepository,
     private readonly assessments: AssessmentRepository,
     private readonly adaptiveEngine: AdaptiveEngineGateway,
-    private readonly anomalyDetector: BehavioralAnomalyDetector,
+    private readonly anomalyDetectionService: AnomalyDetectionService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly estimatedLevelRepository: EstimatedLevelRepository,
   ) {}
 
   async execute(
@@ -66,7 +70,7 @@ export class ProcessAssessmentAttemptUseCase {
 
     attempt.attachScore(interpretationResult.interpretation.score);
 
-    const anomaly = this.anomalyDetector.detect(attempt);
+    const anomaly = this.anomalyDetectionService.detect(attempt);
     if (anomaly) {
       attempt.markSuspect(anomaly);
     }
@@ -87,20 +91,39 @@ export class ProcessAssessmentAttemptUseCase {
         targetCertId,
         interpretationResult.interpretation.score.value, // globalscore
         [
-          { 
-            competenceId: interpretationResult.competenceId, 
-            score: interpretationResult.interpretation.interpretedScore 
-          }
+          {
+            competencyId: interpretationResult.competencyId,
+            score: interpretationResult.interpretation.interpretedScore,
+          },
         ],
         isSuspect,
       );
       this.eventEmitter.emit(event.constructor.name, event);
     } else if (!anomaly) {
-      // Formative -> report to adaptive
+      // Formative -> Update or create EstimatedLevel, then report to adaptive
+      let estimatedLevelAgg = await this.estimatedLevelRepository.findByLearnerAndCompetency(
+        attempt.getLearnerId(),
+        interpretationResult.competencyId as CompetencyId,
+      );
+
+      if (!estimatedLevelAgg) {
+        estimatedLevelAgg = new EstimatedLevel(
+          attempt.getLearnerId(),
+          interpretationResult.competencyId as CompetencyId,
+          input.tenantId,
+          0.0 // Default baseline or fetch from somewhere
+        );
+      }
+
+      // Update the smooth level and save
+      estimatedLevelAgg.updateLevel(interpretationResult.interpretation.interpretedScore);
+      await this.estimatedLevelRepository.save(estimatedLevelAgg);
+
+      // Report smoothed value to adaptive
       await this.adaptiveEngine.submitScore({
         learnerId: attempt.getLearnerId(),
-        competenceId: interpretationResult.competenceId,
-        estimatedLevel: interpretationResult.interpretation.interpretedScore,
+        competencyId: interpretationResult.competencyId,
+        estimatedLevel: estimatedLevelAgg.currentLevelValue,
         tenantId: input.tenantId,
       });
     }
