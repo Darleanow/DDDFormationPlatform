@@ -38,84 +38,13 @@ export class LearningPathInMemoryRepository implements LearningPathRepository {
   }
 
   // ---------------------------------------------------------------------------
-  // Seed — realistic fake data covering all Gherkin scenarios
+  // Seed — realistic fake data for non–seeded learners (bob, carla, david).
+  // Parcours « learner-alice » est construit à l’inscription via enrollment.confirmed + IdentityToAdaptiveAdapter.
   // ---------------------------------------------------------------------------
 
   private seed(): void {
     const learnerIndex = new Map<string, string>();
     (this as any)._learnerIndex = learnerIndex;
-
-    // ── Scénario 1 : Parcours standard en course (remédiation déjà insérée) ───
-    const path1 = LearningPath.reconstitute({
-      id: 'path-alice-001',
-      learnerId: 'learner-alice',
-      tenantId: 'tenant-universite-lyon',
-      targetCertificationId: 'cert-developpement-logiciel-avance',
-      constraint: CoverageConstraint.from({
-        mandatoryCompetencyIds: [
-          'algorithmique-recursive',
-          'programmation-objet',
-        ],
-        weeklyHours: 10,
-        deadlineAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // +60 jours
-      }),
-      /** contentId values reference real BC2 catalogue rows (lecons.csv / exercices.csv) so catalogue + parcours align. */
-      activities: [
-        new Activity(
-          randomUUID(),
-          'l004',
-          'REMEDIATION',
-          ['algorithmique-recursive'],
-          2,
-          0,
-        ),
-        new Activity(
-          randomUUID(),
-          'l005',
-          'LESSON',
-          ['algorithmique-recursive'],
-          3,
-          1,
-        ),
-        new Activity(
-          randomUUID(),
-          'e002',
-          'EXERCISE',
-          ['algorithmique-recursive'],
-          2,
-          2,
-        ),
-        new Activity(
-          randomUUID(),
-          'l010',
-          'LESSON',
-          ['programmation-objet'],
-          4,
-          3,
-        ),
-        new Activity(
-          randomUUID(),
-          'l013',
-          'LESSON',
-          ['programmation-objet'],
-          3,
-          4,
-        ),
-        new Activity(
-          randomUUID(),
-          'assessment:competence:programmation-objet',
-          'ASSESSMENT',
-          ['programmation-objet'],
-          1,
-          5,
-        ),
-      ],
-      levels: [
-        EstimatedLevel.from('algorithmique-recursive', 0.42), // insuffisant — remédiation déjà insérée
-      ],
-    });
-    this.store.set(path1.id, path1);
-    learnerIndex.set(path1.learnerId, path1.id);
 
     // ── Scénario 2 : Apprenant en accélération (maîtrise rapide) ────────────
     const path2 = LearningPath.reconstitute({

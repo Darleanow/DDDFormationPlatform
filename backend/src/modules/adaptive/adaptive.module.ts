@@ -9,6 +9,7 @@ import { AssessmentAcl } from './infrastructure/acl/assessment-acl';
 import { LearningPathRepository } from './domain/repositories/learning-path.repository';
 import { LearningPathInMemoryRepository } from './infrastructure/persistence/learning-path.in-memory.repository';
 import { AdaptiveController } from './infrastructure/controller/adaptive.controller';
+import { ProgramModuleOverviewService } from './application/services/program-module-overview.service';
 import { CatalogModule } from '../catalog/catalog.module';
 import { CatalogQueryService } from '../catalog/application/catalog-query.service';
 import { InternalLearningCatalogGateway } from './infrastructure/integration/internal-learning-catalog.gateway';
@@ -28,6 +29,7 @@ import { IdentityToAdaptiveAdapter } from './infrastructure/integration/identity
     // Application handlers
     EnrollmentConfirmedHandler,
     AssessmentResultHandler,
+    ProgramModuleOverviewService,
 
     // Infrastructure — ACL (BC4 → BC3)
     AssessmentAcl,

@@ -3,7 +3,6 @@
 import { FileText, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DEFAULT_LEARNER_ID,
   getExercise,
@@ -31,7 +30,6 @@ export default function ExercisePage({
     type: string;
   } | null>(null);
   const [pathLoaded, setPathLoaded] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -87,11 +85,6 @@ export default function ExercisePage({
     try {
       await markActivityCompleted(DEFAULT_LEARNER_ID, exoId);
       setCompleted(true);
-      setTimeout(() => {
-        if (moduleId)
-          router.push(`/dashboard/catalog/module/${moduleId}`);
-        else router.push("/dashboard/catalog");
-      }, 1500);
     } catch (e) {
       console.error("Failed to mark as completed", e);
       const msg =

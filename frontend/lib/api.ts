@@ -42,6 +42,53 @@ export const getLesson = (lessonId: string) => fetchApi<any>(`/catalog/lessons/$
 export const getLecon = getLesson;
 
 export const getLearningPath = (learnerId: string) => fetchApi<any>(`/adaptive/path/${learnerId}`);
+/** BC2 modules in program order (prérequis) + avancement aligné sur BC3 — détail des étapes inclus */
+export type ModuleCatalogStep = {
+  type: "LESSON" | "EXERCISE" | "ASSESSMENT" | string;
+  contentId: string;
+  label: string;
+  completed: boolean;
+};
+
+export type ModuleOverviewRow = {
+  moduleId: string;
+  nom: string;
+  canAccess: boolean;
+  missingPrerequisites: { id: string; titre: string }[];
+  completedSteps: number;
+  totalSteps: number;
+  fullyDone: boolean;
+  steps: ModuleCatalogStep[];
+};
+
+export function getProgramModulesOverview(learnerId: string, programId: string) {
+  const q = encodeURIComponent(programId.trim());
+  return fetchApi<{ learnerId: string; programId: string; modules: ModuleOverviewRow[] }>(
+    `/adaptive/path/${encodeURIComponent(learnerId)}/program-modules?programId=${q}`,
+  );
+}
+
+/** Compétences considérées comme validées côté BC2 pour les prérequis (activités parcours complétées). */
+export function validatedCompetenceIdsFromPath(path: {
+  activities?: { status: string; competencyIds?: string[] }[];
+} | null): string[] {
+  const ids: string[] = [];
+  for (const a of path?.activities ?? []) {
+    if (a.status === "COMPLETED" && a.competencyIds?.length) {
+      ids.push(...a.competencyIds);
+    }
+  }
+  return [...new Set(ids)];
+}
+
+export function checkCatalogModuleAccess(moduleId: string, validatedCompetenceIds: string[]) {
+  const v = validatedCompetenceIds.length
+    ? `?validatedCompetences=${validatedCompetenceIds.map(encodeURIComponent).join(",")}`
+    : "";
+  return fetchApi<{ canAccess: boolean; missingPrerequisites: { id: string; titre: string }[] }>(
+    `/catalog/modules/${encodeURIComponent(moduleId)}/access${v}`,
+  );
+}
 /** Demo learner seeded in dev — swap for auth-backed id when identities exist */
 export const DEFAULT_LEARNER_ID = 'learner-alice';
 
@@ -55,3 +102,43 @@ export const getCertifications = () => fetchApi<any[]>('/certifications');
 export const getExercise = (id: string) => fetchApi<any>(`/catalog/exercises/${id}`);
 /** @deprecated use getExercise */
 export const getExercice = getExercise;
+
+/** BC4 — génération d'une évaluation (items filtrés par difficulté adaptative). */
+export function generateAdaptiveAssessment(body: {
+  assessmentId: string;
+  competencyId: string;
+  estimatedLevel: string;
+  tenantId?: string;
+}) {
+  return fetchApi<{ assessmentId: string; items: { id: string; difficulty: number; weight: number }[] }>(
+    '/assessments/generate',
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+/** BC4 — après tentative : scoring + publication niveau estimé → BC3. */
+export function processAdaptiveAssessmentAttempt(
+  assessmentId: string,
+  attemptId: string,
+  body: {
+    learnerId: string;
+    questionCount: number;
+    durationSeconds: number;
+    itemResults: { itemId: string; isCorrect: boolean }[];
+    tenantId?: string;
+  },
+) {
+  const a = encodeURIComponent(assessmentId);
+  const t = encodeURIComponent(attemptId);
+  return fetchApi<Record<string, unknown>>(
+    `/assessments/${a}/attempts/${t}/process`,
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+/** Stable ID Bridge BC3/BC4 : `assessment:competence:<competencyId>`. */
+export function competencyIdFromAdaptiveAssessmentActivity(contentId: string): string | null {
+  const prefix = 'assessment:competence:';
+  if (!contentId.startsWith(prefix)) return null;
+  return contentId.slice(prefix.length);
+}

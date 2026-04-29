@@ -17,6 +17,8 @@ import type { ICertificationRepository } from './modules/certification/domain/re
 import { Certification } from './modules/certification/domain/entities/certification.entity';
 import { IssuanceRule } from './modules/certification/domain/entities/issuance-rule.entity';
 import type { CompetencyId } from './shared/competency-id';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EnrollmentConfirmedEvent } from './modules/identity/domain/events/enrollment-confirmed.event';
 
 // We could also inject the Catalog and Adaptive repos to fully populate the mock DB
 // For now, let's at least create the Tenant, Learner, and Enrollment.
@@ -28,21 +30,22 @@ export class SeedService implements OnApplicationBootstrap {
     @Inject(LEARNER_REPOSITORY) private readonly learnerRepo: ILearnerRepository,
     @Inject(ENROLLMENT_REPOSITORY) private readonly enrollmentRepo: IEnrollmentRepository,
     @Inject('ICertificationRepository') private readonly certRepo: ICertificationRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async onApplicationBootstrap() {
     console.log('🌱 Starting database seeding (in-memory mode)...');
 
     // 1. Create a Tenant
-    const tenantId = 'tenant-1';
+    const tenantId = 'tenant-universite-lyon';
     const existingTenant = await this.tenantRepo.findById(tenantId);
     if (!existingTenant) {
-      const tenant = Tenant.create(tenantId, 'Université Paris Saclay', {
+      const tenant = Tenant.create(tenantId, 'Université Lyon — démo catalogue', {
         scoreSeuil: 75,
         maxAttempts: 3,
       });
       await this.tenantRepo.save(tenant);
-      console.log('✅ Created mock Tenant: Université Paris Saclay');
+      console.log('✅ Created mock Tenant: Université Lyon (démo)');
     }
 
     // 2. Create a Learner
@@ -61,7 +64,7 @@ export class SeedService implements OnApplicationBootstrap {
     }
 
     // 3. Create an Enrollment
-    const programId = 'prog-1';
+    const programId = 'p001';
     const existingEnrollment = await this.enrollmentRepo.existsByLearnerAndProgram(learnerId, programId);
     if (!existingEnrollment) {
       const enrollment = Enrollment.create({
@@ -74,6 +77,26 @@ export class SeedService implements OnApplicationBootstrap {
       });
       await this.enrollmentRepo.save(enrollment);
       console.log('✅ Created mock Enrollment for Alice in Dévelopement Logiciel Avancé');
+    }
+
+    /** Re-publication à chaque boot : parcours in-memory régénéré depuis le catalogue CSV + prérequis. */
+    const aliceEnrollments = await this.enrollmentRepo.findByLearner(learnerId);
+    const aliceProgram = aliceEnrollments.find((e) => e.programId === programId);
+    if (aliceProgram) {
+      await this.eventEmitter.emitAsync(
+        EnrollmentConfirmedEvent.EVENT_NAME,
+        new EnrollmentConfirmedEvent(
+          aliceProgram.learnerId,
+          aliceProgram.tenantId,
+          aliceProgram.programId,
+          aliceProgram.weeklyAvailabilityHours,
+          aliceProgram.deadline,
+          aliceProgram.enrolledAt,
+        ),
+      );
+      console.log(
+        '✅ enrollment.confirmed publié — parcours BC3 (re)généré pour Alice / p001',
+      );
     }
 
     // 4. Create a Certification rule

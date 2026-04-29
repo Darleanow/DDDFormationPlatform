@@ -1,8 +1,16 @@
 "use client";
 
-import { Network, FastForward, AlertTriangle, ArrowRightCircle, ListChecks, Loader2 } from "lucide-react";
+import {
+  Loader2,
+  ListChecks,
+  AlertTriangle,
+  ArrowRightCircle,
+  BookOpen,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { getLearningPath } from "@/lib/api";
+import Link from "next/link";
+import { getLearningPath, DEFAULT_LEARNER_ID } from "@/lib/api";
+import { activityDetailHref } from "@/lib/adaptive-navigation";
 
 export default function AdaptiveEnginePage() {
   const [learningPath, setLearningPath] = useState<any>(null);
@@ -11,9 +19,7 @@ export default function AdaptiveEnginePage() {
   useEffect(() => {
     async function loadAdaptiveData() {
       try {
-        // Our seeder doesn't create a learning path automatically yet, so this might be null.
-        // The Adaptive module usually creates it upon first evaluation.
-        const path = await getLearningPath("learner-alice").catch(() => null);
+        const path = await getLearningPath(DEFAULT_LEARNER_ID).catch(() => null);
         setLearningPath(path);
       } catch (e) {
         console.error("Failed to load adaptive path", e);
@@ -25,95 +31,151 @@ export default function AdaptiveEnginePage() {
   }, []);
 
   if (loading) {
-    return <div className="flex h-64 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  // Fallback to empty state if no path yet
-  const recommendation = learningPath?.currentRecommendation || null;
-  const modulesPlan = learningPath?.modulesPlan || [];
+  const nextActivity = learningPath?.nextActivity ?? null;
+  const activities: any[] = learningPath?.activities ?? [];
+  const atRisk = learningPath?.coverageAtRisk ?? false;
 
   return (
     <div className="space-y-8">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Moteur Adaptatif</h1>
-          <p className="text-muted-foreground mt-1">Données réelles chargées depuis le BC3</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Moteur adaptatif (BC3)
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            GET <code className="text-xs">/adaptive/path/{DEFAULT_LEARNER_ID}</code> — même
+            modèle que le parcours (nextActivity + activities).
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Next Recommendation */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-5">
-            <Network className="w-48 h-48" />
+      {learningPath?.alertMessage ? (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+        >
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <div className="font-medium">{learningPath.alertMessage}</div>
+            {learningPath?.uncoveredCompetences?.length ? (
+              <p className="mt-2 text-muted-foreground text-xs">
+                Compétences encore à couvrir :{" "}
+                {learningPath.uncoveredCompetences.join(", ")}
+              </p>
+            ) : null}
           </div>
-          
-          <h2 className="text-xl font-semibold mb-6 flex items-center">
-            <ArrowRightCircle className="w-5 h-5 mr-2 text-primary" /> 
-            Prochaine Activité Recommandée
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="relative overflow-hidden lg:col-span-2 rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-4 flex items-center text-xl font-semibold">
+            <ArrowRightCircle className="mr-2 h-5 w-5 text-primary" />
+            Prochaine activité
           </h2>
 
-          {recommendation ? (
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary mb-1 block">
-                    {recommendation.isRemediation ? "Remédiation Déclenchée" : "Parcours Standard"}
-                  </span>
-                  <h3 className="text-2xl font-bold">{recommendation.moduleId || "Module inconnu"}</h3>
-                </div>
+          {!learningPath ? (
+            <p className="text-muted-foreground">
+              Pas de données — vérifiez que le backend a bien reçu{" "}
+              <code className="text-xs">enrollment.confirmed</code> pour Alice /
+              programme <code className="text-xs">p001</code>.
+            </p>
+          ) : null}
+
+          {learningPath && !nextActivity ? (
+            <p className="text-muted-foreground">Parcours terminé ou aucune activité pendante.</p>
+          ) : null}
+
+          {nextActivity ? (
+            <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-primary">
+                {nextActivity.type}
               </div>
-              <button className="bg-primary text-primary-foreground font-medium rounded-lg px-6 py-3 hover:bg-primary/90 transition-colors">
-                Lancer l'activité
-              </button>
+              <p className="mb-1 font-mono text-sm break-all text-foreground">{nextActivity.contentId}</p>
+              <p className="mb-6 text-muted-foreground text-sm">
+                Statut : {nextActivity.status ?? "—"}
+              </p>
+              <Link
+                href={activityDetailHref({
+                  type: nextActivity.type,
+                  contentId: nextActivity.contentId,
+                })}
+                className="inline-flex rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Ouvrir cette activité
+              </Link>
             </div>
-          ) : (
-            <div className="bg-muted border border-border rounded-xl p-6 text-center text-muted-foreground">
-              <p>Aucune recommandation disponible.</p>
-              <p className="text-sm mt-2">Le moteur adaptatif nécessite une première évaluation pour générer un parcours.</p>
-            </div>
-          )}
+          ) : null}
         </div>
 
-        {/* Status & Constraints */}
-        <div className="space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <h3 className="font-semibold mb-4 flex items-center">
-              <FastForward className="w-4 h-4 mr-2 text-accent-foreground" />
-              Statut Adaptatif
-            </h3>
-            <div className="bg-secondary p-4 rounded-xl text-sm">
-              <p className="text-secondary-foreground font-medium">Path ID: {learningPath?.id || "N/A"}</p>
-              <p className="text-muted-foreground mt-1">Score Actuel: {learningPath?.globalScore || 0}</p>
-            </div>
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
+          <div className="text-sm font-medium text-muted-foreground">Couverture obligatoire</div>
+          <div
+            className={
+              atRisk ? "font-medium text-amber-600" : "font-medium text-green-600"
+            }
+          >
+            {atRisk ? "À risque" : "OK"}
           </div>
+          <Link
+            href="/dashboard/catalog"
+            className="mt-4 inline-flex items-center text-primary text-sm hover:underline"
+          >
+            <BookOpen className="mr-2 h-4 w-4" /> Catalogue BC2 (prérequis modules)
+          </Link>
         </div>
+      </div>
 
-        {/* Path sequencing */}
-        <div className="lg:col-span-3 bg-card border border-border rounded-2xl p-6">
-          <h3 className="font-semibold mb-6 flex items-center">
-            <ListChecks className="w-5 h-5 mr-2 text-muted-foreground" />
-            Séquençage du Parcours (Plan)
-          </h3>
-          
-          {modulesPlan.length > 0 ? (
-            <div className="relative border-l-2 border-border ml-3 space-y-8 pb-4">
-              {modulesPlan.map((mp: any) => (
-                <div key={mp.moduleId} className="relative pl-6">
-                  <div className={`absolute w-4 h-4 rounded-full -left-[9px] top-1 border-4 border-card ${mp.status === 'completed' ? 'bg-green-500' : mp.status === 'in_progress' ? 'bg-primary' : 'bg-muted'}`} />
-                  <div className={`text-sm font-medium ${mp.status === 'completed' ? 'text-green-500' : mp.status === 'in_progress' ? 'text-primary' : 'text-muted-foreground'}`}>
-                    {mp.status}
-                  </div>
-                  <h4 className="font-semibold mt-1">{mp.moduleId}</h4>
-                </div>
-              ))}
-            </div>
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <h3 className="mb-4 flex items-center font-semibold">
+          <ListChecks className="mr-2 h-5 w-5 text-muted-foreground" />
+          Liste des activités ({activities.length})
+        </h3>
+        <p className="mb-6 text-muted-foreground text-sm">
+          Séquence construite depuis le catalogue après tri topologique des modules (prérequis),
+          puis leçons, exercices, évaluation par module.
+        </p>
+        <div className="max-h-[480px] space-y-2 overflow-auto text-sm">
+          {activities.length === 0 ? (
+            <p className="text-muted-foreground">Aucune activité.</p>
           ) : (
-            <p className="text-muted-foreground text-sm">Aucun module planifié. Parcours vide.</p>
+            activities.slice(0, 80).map((a: any, i: number) => (
+              <div
+                key={`${a.contentId}-${i}`}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2 font-mono text-xs"
+              >
+                <span className="text-muted-foreground">{i + 1}.</span>
+                <span className="grow text-foreground truncate">{a.type}</span>
+                <span className="truncate text-muted-foreground max-w-[200px]" title={a.contentId}>
+                  {a.contentId}
+                </span>
+                <span
+                  className={
+                    a.status === "COMPLETED"
+                      ? "text-green-500"
+                      : a.status === "PENDING"
+                        ? "text-amber-500"
+                        : "text-muted-foreground"
+                  }
+                >
+                  {a.status ?? "?"}
+                </span>
+              </div>
+            ))
           )}
+          {activities.length > 80 ? (
+            <p className="pt-4 text-muted-foreground text-xs">
+              … et {activities.length - 80} activités suivantes (tronquées pour lisibilité)
+            </p>
+          ) : null}
         </div>
-
       </div>
     </div>
   );

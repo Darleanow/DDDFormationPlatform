@@ -74,13 +74,44 @@ describe('LearningPath – checkCompletionStatus()', () => {
 
 // ── markCurrentActivityCompleted() ───────────────────────────────────────────
 
+describe('LearningPath – markNextPendingIfContentIdMatches()', () => {
+  it('completes only when contentId matches next pending activity', () => {
+    const path = buildPath(['c1']);
+    const a1 = new Activity('a1', 'lesson-a1', 'LESSON', ['c1'], 2, 0);
+    const a2 = new Activity('a2', 'specific-assessment-id', 'ASSESSMENT', ['c1'], 1, 1);
+    path.addActivity(a2);
+    path.addActivity(a1);
+
+    expect(path.markNextPendingIfContentIdMatches('wrong-id')).toBeUndefined();
+    expect(a1.isPending()).toBe(true);
+
+    expect(path.markNextPendingIfContentIdMatches('lesson-a1')).toBeDefined();
+    expect(a1.isCompleted()).toBe(true);
+    expect(a2.isPending()).toBe(true);
+  });
+
+  it('does not complete matching id when earlier activity is still pending', () => {
+    const path = buildPath(['c1']);
+    const lesson = new Activity('l1', 'l004', 'LESSON', ['c1'], 1, 0);
+    const assess = new Activity('ev1', 'assessment:competence:c1', 'ASSESSMENT', ['c1'], 1, 1);
+    path.addActivity(lesson);
+    path.addActivity(assess);
+
+    expect(
+      path.markNextPendingIfContentIdMatches('assessment:competence:c1'),
+    ).toBeUndefined();
+    expect(lesson.isPending()).toBe(true);
+    expect(assess.isPending()).toBe(true);
+  });
+});
+
 describe('LearningPath – markCurrentActivityCompleted()', () => {
   it('marks the lowest-order pending activity as COMPLETED', () => {
     const path = buildPath(['c1']);
     const a1 = new Activity('a1', 'content-a1', 'LESSON', ['c1'], 2, 0);
     const a2 = new Activity('a2', 'content-a2', 'ASSESSMENT', ['c1'], 1, 1);
-    path.addActivity(a1);
     path.addActivity(a2);
+    path.addActivity(a1); // order global: LESSON puis ASSESSMENT
 
     path.markCurrentActivityCompleted();
 

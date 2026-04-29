@@ -10,7 +10,7 @@ Le code utilise des identifiants et des noms d’API en **anglais** ; les notion
 |-------------------|-------------------|
 | Parcours d’apprentissage | Agrégat `LearningPath` : liste ordonnée d’**activités** pour un apprenant. |
 | Plan d’apprentissage | `LearningPlan` : projection dans le temps (créneaux hebdomadaires, faisabilité vs échéance). |
-| Activité | `Activity` : leçon, exercice, remédiation, évaluation référencée par `contentId` (référence au catalogue BC2). |
+| Activité | `Activity` : leçon (`LESSON`), exercice (`EXERCISE`), rémédiation, évaluation (`ASSESSMENT`) identifiée par `contentId` (BC2 catalogue ou **`assessment:competence:<id>`** pour BC4). |
 | Recommandation | `Recommendation` : explication métier (« prochaine activité », priorité obligation de couverture, etc.). |
 | Remédiation | Activité corrective insérée quand une compétence n’est pas jugée acquise après évaluation (service `RemediationService`). |
 | Accélération | Saut ou condensation de segments du parcours si la maîtrise suffit (`AccelerationService`). |
@@ -33,6 +33,10 @@ Le code utilise des identifiants et des noms d’API en **anglais** ; les notion
 | **BC1 — Identity / Enrollment** | `EnrollmentConfirmedHandler` : à la confirmation d’inscription émise depuis l’identity, construction / mise à jour du parcours (via `IdentityToAdaptiveAdapter` + exposition du catalogue BC2 pour matérialiser les activités). |
 | **BC2 — Learning Catalog** | Port `LEARNING_CATALOG_GATEWAY` implémenté par `InternalLearningCatalogGateway` (wrap de `CatalogQueryService`) pour résoudre modules / contenus lors du séquençage et de la remédiation (lookup remédiale). |
 | **BC4 — Assessment** | `AssessmentAcl` + `AssessmentToAdaptiveAdapter` : événements / résultats issus BC4 sont **traduits** avant d’affecter le parcours (anti-corruption layer — le modèle interne BC3 ne dépend pas des détails BC4 comme le score brut). |
+
+## Séquençage initial après inscription
+
+**IdentityToAdaptiveAdapter** appelle **`PrerequisiteGraphService.getModulesInTopologicalOrderForProgram`** pour respecter les prérequis **modules** dans le CSV (`modules.csv`). Pour chaque module : leçons triées (`ordre`) → pour chaque leçon, exercices → puis activités **`ASSESSMENT`** stables avec `contentId = assessment:competence:<competencyId>` (pont BC3/BC4). Le **`SeedService`** re-publie `enrollment.confirmed` au boot pour régénérer le parcours démo après rechargement des CSV.
 
 ## Persistence et exposition HTTP (PoC)
 

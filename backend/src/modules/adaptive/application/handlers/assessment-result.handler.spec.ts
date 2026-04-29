@@ -9,13 +9,21 @@ import { Activity } from '../../domain/entities/activity.entity';
 import { CoverageConstraint } from '../../domain/value-objects/coverage-constraint.vo';
 import { EstimatedLevel } from '../../domain/value-objects/estimated-level.vo';
 import { LearningPathCompletedEvent } from '../../domain/events/learning-path-completed.event';
+import { assessmentAggregateIdForCompetency } from '../../../../shared/bc-integration/assessment-ids';
 
 // ── Mock factory ──────────────────────────────────────────────────────────────
 
 function buildCompletingPath(): LearningPath {
   // One activity left, one mandatory competence not yet evaluated
-  // → after markCurrentActivityCompleted + updateLevel, checkCompletionStatus() = true
-  const activity = new Activity('a-last', 'content-final', 'ASSESSMENT', ['c1'], 1, 0);
+  // → after matching assessment completes + updateLevel, checkCompletionStatus() = true
+  const activity = new Activity(
+    'a-last',
+    assessmentAggregateIdForCompetency('c1'),
+    'ASSESSMENT',
+    ['c1'],
+    1,
+    0,
+  );
 
   const path = LearningPath.reconstitute({
     id: 'path-completion-test',
@@ -34,9 +42,16 @@ function buildCompletingPath(): LearningPath {
 }
 
 function buildNonCompletingPath(): LearningPath {
-  // Two activities pending — path won't complete after one assessment
-  const a1 = new Activity('a1', 'content-1', 'LESSON',    ['c1'], 2, 0);
-  const a2 = new Activity('a2', 'content-2', 'ASSESSMENT', ['c1'], 1, 1);
+  // Lesson first → BC4 résultat ne peut pas encore compléter l’activité suivante de l'évaluation
+  const a1 = new Activity('a1', 'lesson-1', 'LESSON', ['c1'], 2, 0);
+  const a2 = new Activity(
+    'a2',
+    assessmentAggregateIdForCompetency('c1'),
+    'ASSESSMENT',
+    ['c1'],
+    1,
+    1,
+  );
 
   return LearningPath.reconstitute({
     id: 'path-ongoing',

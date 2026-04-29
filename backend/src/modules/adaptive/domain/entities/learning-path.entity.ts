@@ -76,8 +76,7 @@ export class LearningPath {
 
   /**
    * Marks the lowest-order pending activity as COMPLETED.
-   * Called by the application handler when an assessment result arrives,
-   * signalling that the learner has finished the current activity.
+   * Used by HTTP adapters (lessons/exercises manually marked done) — must stay in global order.
    */
   markCurrentActivityCompleted(): void {
     const current = this.activities
@@ -88,6 +87,20 @@ export class LearningPath {
       current.complete();
       this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
     }
+  }
+
+  /**
+   * Completes the next pending activity only when its `contentId` matches (strict sequence + correct resource).
+   * Used when BC4 publishes an assessment score: advances the path iff the learner was due that assessment activity.
+   */
+  markNextPendingIfContentIdMatches(contentId: string): Activity | undefined {
+    const next = this.getNextPendingActivity();
+    if (!next || next.contentId !== contentId) {
+      return undefined;
+    }
+    next.complete();
+    this.domainEvents.push(new PathUpdatedEvent(this.id, this.learnerId));
+    return next;
   }
 
   // ── Estimated level ────────────────────────────────────────────────────────

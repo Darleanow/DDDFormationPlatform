@@ -15,6 +15,7 @@ import {
 import type { LearningCatalogGateway } from '../ports/learning-catalog.gateway';
 import { LearningPathCompletedEvent } from '../../domain/events/learning-path-completed.event';
 import { BC_INPROCESS_EVENT } from '../../../../shared/bc-integration/in-process-events';
+import { assessmentAggregateIdForCompetency } from '../../../../shared/bc-integration/assessment-ids';
 
 export { AssessmentResultPayload };
 
@@ -35,12 +36,10 @@ export class AssessmentResultHandler {
     const path = await this.repo.findByLearnerId(payload.learnerId);
     if (!path) return;
 
-    const completedActivity = path.getNextPendingActivity();
+    const expectedContentId = assessmentAggregateIdForCompetency(payload.competencyId);
+    const completedActivity = path.markNextPendingIfContentIdMatches(expectedContentId);
 
-    // 1. Mark the assessed activity as done (aggregate method preserves encapsulation)
-    path.markCurrentActivityCompleted();
-
-    // 2. ACL: translate BC4 payload → BC3's EstimatedLevel
+    // 1. ACL: translate BC4 payload → BC3's EstimatedLevel (always record level even if path order blocks completion)
     const level = this.acl.translateResult(payload);
     path.updateLevel(level);
 

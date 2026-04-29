@@ -1,72 +1,96 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CatalogQueryService } from '../../../catalog/application/catalog-query.service';
+import { PrerequisiteGraphService } from '../../../catalog/application/prerequisite-graph.service';
 import { EnrollmentConfirmedEvent as AdaptiveEnrollmentConfirmedEvent } from '../../application/events/enrollment-confirmed.event';
 import { EnrollmentConfirmedHandler } from '../../application/handlers/enrollment-confirmed.handler';
 import { assessmentAggregateIdForCompetency } from '../../../../shared/bc-integration/assessment-ids';
 
+type CatalogActivity = {
+  contentId: string;
+  competencyIds: string[];
+  estimatedHours: number;
+  type: 'LESSON' | 'EXERCISE' | 'ASSESSMENT';
+};
+
 /**
  * Adapter that listens to the public `enrollment.confirmed` event emitted by BC1
  * and translates it to the richer payload expected by the Adaptive engine.
+ *
+ * Séquençage : modules en **ordre topologique des prérequis** (voir PrerequisiteGraphService),
+ * puis par module : leçons (ordonnées), puis exercices de chaque leçon,
+ * puis évaluations par compétence couverte par ce module (IDs stables BC3/BC4).
  */
 @Injectable()
 export class IdentityToAdaptiveAdapter {
   constructor(
     private readonly catalogService: CatalogQueryService,
+    private readonly prereqGraph: PrerequisiteGraphService,
     private readonly handler: EnrollmentConfirmedHandler,
   ) {}
 
   @OnEvent('enrollment.confirmed')
   async handleIdentityEvent(payload: any): Promise<void> {
-    // Identity event shape (BC1):
-    // { learnerId, tenantId, programId, weeklyAvailabilityHours, deadline, enrolledAt }
+    const programId =
+      payload.programId ?? payload.program?.id ?? null;
 
-    const programId = payload.programId ?? payload.program?.id ?? null;
-
-    // Build constraints
-    const weeklyHours = payload.weeklyAvailabilityHours ?? payload.constraints?.weeklyHours ?? 0;
+    const weeklyHours =
+      payload.weeklyAvailabilityHours ?? payload.constraints?.weeklyHours ?? 0;
     const deadline = payload.deadline ?? payload.constraints?.deadline ?? undefined;
 
-    // Try to enrich from catalogue: mandatory competence ids + catalog activities
     let mandatoryCompetencyIds: string[] = [];
-    let catalogActivities: Array<any> = [];
+    const catalogActivities: CatalogActivity[] = [];
 
     if (programId) {
-      const program = await this.catalogService.findProgrammeById(programId);
-      if (program) {
-        // derive targetCertificationId from program.objectifPrincipal if present
-        // gather courses/modules/lecons to build a flattened activity list
-        const courses = await this.catalogService.findCoursByProgramme(programId);
-        for (const course of courses || []) {
-          const modules = await this.catalogService.findModulesByCours(course.id);
-          for (const mod of modules || []) {
-            const compIds = (mod.competences || []).map((c: any) => c.id);
-            mandatoryCompetencyIds.push(...compIds);
+      const programme = await this.catalogService.findProgrammeById(programId);
+      if (programme) {
+        mandatoryCompetencyIds = [];
 
-            // take lessons as activities
-            const lessons = await this.catalogService.findLessonsByModule(mod.id);
-            for (const l of lessons || []) {
+        const sortedModules =
+          await this.prereqGraph.getModulesInTopologicalOrderForProgram(programId);
+
+        for (const mod of sortedModules) {
+          mod.competences?.forEach((c) => mandatoryCompetencyIds.push(c.id));
+
+          let lessons =
+            (await this.catalogService.findLessonsByModule(mod.id)) || [];
+          lessons = [...lessons].sort((a, b) => a.ordre - b.ordre);
+
+          for (const lesson of lessons) {
+            catalogActivities.push({
+              contentId: lesson.id,
+              competencyIds: (lesson.competences || []).map((c: { id: string }) => c.id),
+              estimatedHours: 1,
+              type: 'LESSON',
+            });
+
+            let exercises =
+              (await this.catalogService.findExercisesByLesson(lesson.id)) || [];
+            exercises = [...exercises].sort((a, b) => a.ordre - b.ordre);
+            for (const ex of exercises) {
               catalogActivities.push({
-                contentId: l.id,
-                competencyIds: (l.competences || []).map((c: any) => c.id),
-                estimatedHours: 1,
-                type: 'LESSON',
+                contentId: ex.id,
+                competencyIds: (ex.competences || []).map(
+                  (c: { id: string }) => c.id,
+                ),
+                estimatedHours: Math.max(0.25, Number(ex.difficulty ?? 0.5)),
+                type: 'EXERCISE',
               });
             }
           }
-        }
-        // deduplicate competence ids
-        mandatoryCompetencyIds = Array.from(new Set(mandatoryCompetencyIds));
 
-        // Stable BC4 evaluations (Assessment per competence SK) — must exist after CompetenceAssessmentsBootstrap (BC Assessment module).
-        for (const cid of mandatoryCompetencyIds) {
-          catalogActivities.push({
-            contentId: assessmentAggregateIdForCompetency(cid),
-            competencyIds: [cid],
-            estimatedHours: 0.5,
-            type: 'ASSESSMENT',
-          });
+          const compIdsUnit = [...new Set((mod.competences || []).map((c: { id: string }) => c.id))];
+          for (const cid of compIdsUnit) {
+            catalogActivities.push({
+              contentId: assessmentAggregateIdForCompetency(cid),
+              competencyIds: [cid],
+              estimatedHours: 0.5,
+              type: 'ASSESSMENT',
+            });
+          }
         }
+
+        mandatoryCompetencyIds = Array.from(new Set(mandatoryCompetencyIds));
       }
     }
 
@@ -74,14 +98,13 @@ export class IdentityToAdaptiveAdapter {
       payload.learnerId,
       programId,
       payload.tenantId,
-      // targetCertificationId: use program.objectifPrincipal when available
-      (await this.catalogService.findProgrammeById(programId))?.objectifPrincipal ?? programId,
+      (await this.catalogService.findProgrammeById(programId))?.objectifPrincipal ??
+        programId,
       {
         weeklyHours,
         deadline,
         mandatoryCompetencyIds,
       },
-      // fallback to empty array if nothing found
       catalogActivities,
     );
 

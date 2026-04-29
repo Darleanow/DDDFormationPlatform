@@ -3,7 +3,6 @@
 import { FileText, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { DEFAULT_LEARNER_ID, getLesson, getLearningPath, markActivityCompleted } from "@/lib/api";
 import { activityDetailHref } from "@/lib/adaptive-navigation";
 
@@ -22,7 +21,6 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
   } | null>(null);
   /** null = encore inconnu ou absent */
   const [pathLoaded, setPathLoaded] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -69,10 +67,6 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
     try {
       await markActivityCompleted(DEFAULT_LEARNER_ID, lessonId);
       setCompleted(true);
-      // Wait a bit to show success state before redirecting
-      setTimeout(() => {
-        router.push(`/dashboard/catalog/module/${lesson?.moduleId}`);
-      }, 1500);
     } catch (e) {
       console.error("Failed to mark as completed", e);
       const msg = e instanceof Error ? e.message : "Impossible d'enregistrer la progression.";

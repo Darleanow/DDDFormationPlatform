@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { LearningPathRepository } from '../../domain/repositories/learning-path.repository';
@@ -13,6 +14,7 @@ import { ConstraintSolverService } from '../../domain/services/constraint-solver
 import { Recommendation } from '../../domain/entities/recommendation.entity';
 import { LearningPlan } from '../../domain/entities/learning-plan.entity';
 import { Activity } from '../../domain/entities/activity.entity';
+import { ProgramModuleOverviewService } from '../../application/services/program-module-overview.service';
 
 // ── DTOs ────────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,28 @@ export class LearningPlanResponseDto {
   slots: WeeklySlotDto[];
 }
 
+export class ModuleOverviewRowDto {
+  moduleId!: string;
+  nom!: string;
+  canAccess!: boolean;
+  missingPrerequisites!: { id: string; titre: string }[];
+  completedSteps!: number;
+  totalSteps!: number;
+  fullyDone!: boolean;
+  steps!: {
+    type: string;
+    contentId: string;
+    label: string;
+    completed: boolean;
+  }[];
+}
+
+export class ProgramModulesOverviewResponseDto {
+  learnerId!: string;
+  programId!: string;
+  modules!: ModuleOverviewRowDto[];
+}
+
 // ── Controller ───────────────────────────────────────────────────────────────
 
 @Controller('adaptive/path')
@@ -69,7 +93,28 @@ export class AdaptiveController {
   constructor(
     private readonly repo: LearningPathRepository,
     private readonly solver: ConstraintSolverService,
+    private readonly moduleOverview: ProgramModuleOverviewService,
   ) {}
+
+  /**
+   * GET /adaptive/path/:learnerId/program-modules?programId=...
+   * Catalogue BC2 + prérequis + progression réelle sur le parcours BC3 (doit être avant :learnerId).
+   */
+  @Get(':learnerId/program-modules')
+  async getProgramModulesOverview(
+    @Param('learnerId') learnerId: string,
+    @Query('programId') programId: string,
+  ): Promise<ProgramModulesOverviewResponseDto> {
+    if (!programId?.trim()) {
+      throw new BadRequestException('Query programId est requis (ex. p001).');
+    }
+    const modules = await this.moduleOverview.build(learnerId, programId.trim());
+    return {
+      learnerId,
+      programId: programId.trim(),
+      modules,
+    };
+  }
 
   /**
    * GET /adaptive/path/:learnerId

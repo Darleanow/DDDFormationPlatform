@@ -3,6 +3,20 @@ import { Target, Activity, ShieldAlert, BarChart3, Clock } from "lucide-react";
 export default function AssessmentPage() {
   return (
     <div className="space-y-8">
+      <div
+        role="status"
+        className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+      >
+        <strong className="font-medium">Maquette PoC (BC4 hors contexte session)</strong>
+        <span className="text-muted-foreground">
+          {" "}
+          — les niveaux / tentatives ci-dessous sont factices. Le flux utile est{" "}
+          <code className="text-xs rounded bg-muted px-1">parcours adaptatif → évaluation</code>{" "}
+          (<code className="text-xs rounded bg-muted px-1">/dashboard/assessment/session</code>
+          ).
+        </span>
+      </div>
+
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Évaluations & Niveaux</h1>

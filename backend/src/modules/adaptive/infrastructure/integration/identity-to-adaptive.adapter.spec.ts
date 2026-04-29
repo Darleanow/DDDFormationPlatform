@@ -9,11 +9,19 @@ describe('IdentityToAdaptiveAdapter', () => {
       findCoursByProgramme: jest.fn().mockResolvedValue([]),
     } as any;
 
+    const mockPrereq = {
+      getModulesInTopologicalOrderForProgram: jest.fn().mockResolvedValue([]),
+    };
+
     const mockHandler: Partial<EnrollmentConfirmedHandler> = {
       handle: jest.fn().mockResolvedValue(undefined),
     };
 
-    const adapter = new IdentityToAdaptiveAdapter(mockCatalog as any, mockHandler as any);
+    const adapter = new IdentityToAdaptiveAdapter(
+      mockCatalog as any,
+      mockPrereq as any,
+      mockHandler as any,
+    );
 
     const payload = {
       learnerId: 'learner-1',
@@ -36,28 +44,39 @@ describe('IdentityToAdaptiveAdapter', () => {
 
   it('appends one BC4-aligned ASSESSMENT activity per catalogue competence after lessons', async () => {
     const competencyId = 'comp-a';
+    const mod = {
+      id: 'm1',
+      competences: [{ id: competencyId }],
+      prerequis: [],
+      coursId: 'cr1',
+      ordre: 1,
+    };
     const mockCatalog = {
       findProgrammeById: jest.fn().mockResolvedValue({
         id: 'prog1',
         objectifPrincipal: 'cert-x',
       }),
       findCoursByProgramme: jest.fn().mockResolvedValue([{ id: 'cr1' }]),
-      findModulesByCours: jest.fn().mockResolvedValue([
-        {
-          id: 'm1',
-          competences: [{ id: competencyId }],
-        },
-      ]),
+      findModulesByCours: jest.fn().mockResolvedValue([mod]),
       findLessonsByModule: jest.fn().mockResolvedValue([
-        { id: 'l1', competences: [{ id: competencyId }] },
+        { id: 'l1', competences: [{ id: competencyId }], ordre: 1 },
       ]),
+      findExercisesByLesson: jest.fn().mockResolvedValue([]),
+    };
+
+    const mockPrereq = {
+      getModulesInTopologicalOrderForProgram: jest.fn().mockResolvedValue([mod]),
     };
 
     const mockHandler: Partial<EnrollmentConfirmedHandler> = {
       handle: jest.fn().mockResolvedValue(undefined),
     };
 
-    const adapter = new IdentityToAdaptiveAdapter(mockCatalog as any, mockHandler as any);
+    const adapter = new IdentityToAdaptiveAdapter(
+      mockCatalog as any,
+      mockPrereq as any,
+      mockHandler as any,
+    );
     await adapter.handleIdentityEvent({
       learnerId: 'learner-x',
       tenantId: 't1',

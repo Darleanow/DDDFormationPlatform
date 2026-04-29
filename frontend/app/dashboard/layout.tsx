@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { BookOpen, Network, ShieldCheck, UserCircle2, Settings, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isDashboardNavActive } from "@/lib/dashboard-nav";
 
+/** PoC shell: BC2 content under Catalog; BC3 path under Adaptive; BC4 session under /assessment/session. Index pages Assessment & Certification are mock shells until BC4/BC5 APIs are wired end-to-end. */
 const navItems = [
   { name: "Adaptive Engine", href: "/dashboard/adaptive", icon: Network },
   { name: "Learning Catalog", href: "/dashboard/catalog", icon: BookOpen },
@@ -35,7 +37,7 @@ export default function DashboardLayout({
         
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const isActive = isDashboardNavActive(pathname, item.href);
             const Icon = item.icon;
             
             return (

@@ -30,6 +30,18 @@ export default function CertificationPage() {
 
   return (
     <div className="space-y-8">
+      <div
+        role="status"
+        className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+      >
+        <strong className="font-medium">Maquette PoC (BC5 non branché)</strong>
+        <span className="text-muted-foreground">
+          {" "}
+          — l’éligibilité réelle dépend du parcours adaptatif (BC3) et des règles tenant ; cette page n’est pas
+          utilisable telle quelle en production.
+        </span>
+      </div>
+
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Certification</h1>

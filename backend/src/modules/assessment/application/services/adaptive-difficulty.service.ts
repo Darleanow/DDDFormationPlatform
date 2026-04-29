@@ -18,6 +18,18 @@ export class StaticAdaptiveDifficultyService implements AdaptiveDifficultyServic
   constructor(private readonly ranges: Record<string, DifficultyRange>) {}
 
   getRangeFor(estimatedLevel: string): DifficultyRange {
+    const trimmed = estimatedLevel.trim();
+
+    // Niveau exprimé comme probabilité BC4 (0–1) — cas le plus fréquent depuis l’API / le front.
+    const asNum = Number.parseFloat(trimmed.replace(',', '.'));
+    if (Number.isFinite(asNum) && asNum >= 0 && asNum <= 1) {
+      const key = this.numericProbabilityToBandKey(asNum);
+      const band = this.ranges[key];
+      if (band) {
+        return band;
+      }
+    }
+
     const normalized = normalizeEstimatedLevel(estimatedLevel);
     const range = this.ranges[normalized];
     if (!range) {
@@ -25,5 +37,15 @@ export class StaticAdaptiveDifficultyService implements AdaptiveDifficultyServic
     }
 
     return range;
+  }
+
+  /**
+   * Coupe [0, 1] en trois bandes alignées sur debutant / intermediaire / avance
+   * (même clés que dans {@link assessment.module}).
+   */
+  private numericProbabilityToBandKey(p: number): string {
+    if (p < 1 / 3) return 'debutant';
+    if (p < 2 / 3) return 'intermediaire';
+    return 'avance';
   }
 }
