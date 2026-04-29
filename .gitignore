@@ -1,3 +1,7 @@
 node_modules
-.idea
 dist
+backend/dist
+coverage
+frontend/.next
+.idea
+*.log
