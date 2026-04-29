@@ -1,37 +1,37 @@
 id,nom,description,ordre,coursId,competencyIds,prerequisIds
 m001,Variables et typage statique,Déclaration de variables types primitifs et inférence de types.,1,cr001,c001,
-m002,Structures de contrôle et flux,Conditionnels boucles et gestion du flux d'exécution.,2,cr001,c002,
-m003,Fonctions pures et closures,Définition de fonctions passage d'arguments et portée des variables.,3,cr001,c003,m001
+m002,Structures de contrôle et flux,Conditionnels boucles et gestion du flux d'exécution.,2,cr001,c002,m001
+m003,Fonctions pures et closures,Définition de fonctions passage d'arguments et portée des variables.,3,cr001,c003,m002
 m004,POO : Classes et héritage,Modélisation objet classes abstraites et interfaces.,4,cr001,c004,m003
 m005,POO : Encapsulation et polymorphisme,Modificateurs d'accès surcharge et substitution de Liskov.,5,cr001,c004,m004
-m006,Gestion des erreurs et exceptions,Stratégies de gestion des exceptions et pattern Result/Option.,6,cr001,c011,m003
-m007,Threads et cycle de vie,Création de threads états du cycle de vie et priorités.,1,cr002,c005,
+m006,Gestion des erreurs et exceptions,Stratégies de gestion des exceptions et pattern Result/Option.,6,cr001,c011,m005
+m007,Threads et cycle de vie,Création de threads états du cycle de vie et priorités.,1,cr002,c005,m006
 m008,Synchronisation basique,Sections critiques verrous et conditions de course.,2,cr002,c005|c006,m007
 m009,Concurrence avancée et patterns,Producteur-consommateur acteurs et structures sans verrou.,3,cr002,c006,m008
-m010,Tests unitaires et mocks,Écriture de tests unitaires isolés injection de dépendances et mocking.,1,cr003,c009,m003
+m010,Tests unitaires et mocks,Écriture de tests unitaires isolés injection de dépendances et mocking.,1,cr003,c009,m009
 m011,Tests d'intégration,Stratégies de tests d'intégration et pyramide des tests.,2,cr003,c009,m010
-m012,Design patterns créationnels,Factory Abstract Factory Builder et Singleton.,3,cr003,c012,m004
+m012,Design patterns créationnels,Factory Abstract Factory Builder et Singleton.,3,cr003,c012,m011
 m013,Design patterns comportementaux,Observer Strategy Command et Chain of Responsibility.,4,cr003,c012,m012
 m014,Architecture hexagonale,Ports et adaptateurs séparation du domaine et de l'infrastructure.,5,cr003,c010,m013
 m015,Domain-Driven Design intro,Ubiquitous language bounded contexts et modélisation stratégique.,6,cr003,c020,m014
-m016,Introduction à Docker,Images conteneurs volumes et réseaux Docker fondamentaux.,1,cr004,c016,
+m016,Introduction à Docker,Images conteneurs volumes et réseaux Docker fondamentaux.,1,cr004,c016,m015
 m017,Docker avancé et optimisation,Multi-stage builds sécurité des images et bonnes pratiques.,2,cr004,c016,m016
 m018,Docker Compose,Orchestration locale multi-services avec Compose et dépendances.,3,cr004,c016,m017
 m019,Introduction à Kubernetes,Architecture K8s pods deployments services et namespaces.,4,cr004,c016,m018
 m020,Kubernetes avancé,StatefulSets ConfigMaps Secrets HPA et gestion des ressources.,5,cr004,c016,m019
-m021,Pipelines CI fondamentaux,Étapes build test et artefact dans un pipeline GitHub Actions ou GitLab CI.,1,cr005,c017,
+m021,Pipelines CI fondamentaux,Étapes build test et artefact dans un pipeline GitHub Actions ou GitLab CI.,1,cr005,c017,m020
 m022,Pipelines CD et déploiement,Stratégies de déploiement : blue-green canary et rolling update.,2,cr005,c017,m021
 m023,Monitoring et alerting,Métriques logs traces et mise en place d'alertes pertinentes.,3,cr005,c018,m022
 m024,SRE et fiabilité,SLO SLA error budgets et pratiques de résilience opérationnelle.,4,cr005,c018,m023
-m025,Introduction à la sécurité applicative,OWASP Top 10 modélisation des menaces et secure coding.,1,cr006,c015,
+m025,Introduction à la sécurité applicative,OWASP Top 10 modélisation des menaces et secure coding.,1,cr006,c015,m024
 m026,Authentification et autorisation,OAuth 2.0 JWT RBAC et bonnes pratiques de gestion des identités.,2,cr006,c015,m025
 m027,Sécurité des pipelines DevSecOps,SAST DAST SCA et intégration de la sécurité dans le CI/CD.,3,cr006,c015|c017,m026
-m028,CAP theorem et cohérence,Compromis de cohérence disponibilité et tolérance aux partitions.,1,cr007,c007,
+m028,CAP theorem et cohérence,Compromis de cohérence disponibilité et tolérance aux partitions.,1,cr007,c007,m027
 m029,Consensus distribué,Algorithmes Raft et Paxos pour la coordination entre nœuds.,2,cr007,c007|c008,m028
 m030,Patterns de messagerie,Event sourcing CQRS message queues et guaranteed delivery.,3,cr007,c010,m029
-m031,DDD stratégique,Context mapping relations inter-contextes et anti-corruption layers.,1,cr008,c020,m015
+m031,DDD stratégique,Context mapping relations inter-contextes et anti-corruption layers.,1,cr008,c020,m030
 m032,DDD tactique et agrégats,Agrégats entités value objects et invariants de domaine.,2,cr008,c020,m031
 m033,Event Storming,Atelier de modélisation collaborative pour découvrir les events du domaine.,3,cr008,c020,m032
-m034,Circuit Breaker et résilience,Patterns de tolérance aux pannes : retry backoff circuit breaker.,1,cr009,c018,m024
+m034,Circuit Breaker et résilience,Patterns de tolérance aux pannes : retry backoff circuit breaker.,1,cr009,c018,m033
 m035,Tracing distribué,Instrumentation avec OpenTelemetry et analyse des traces dans Jaeger.,2,cr009,c018,m034
 m036,Chaos Engineering,Tests de résilience par injection de fautes et gamedays.,3,cr009,c018,m035
