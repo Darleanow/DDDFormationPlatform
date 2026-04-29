@@ -49,7 +49,7 @@ export class CsvCatalogService implements OnModuleInit {
         });
 
         // 3. Course
-        const coursRaw = this.readCsv(path.join(dataPath, 'course.csv'));
+        const coursRaw = this.readCsv(path.join(dataPath, 'cours.csv'));
         this.course = coursRaw.map(raw => {
             const c = new Course();
             c.id = raw.id;
@@ -118,7 +118,7 @@ export class CsvCatalogService implements OnModuleInit {
         });
 
         // 7. Exercices
-        const exercicesRaw = this.readCsv(path.join(dataPath, 'exercises.csv'));
+        const exercicesRaw = this.readCsv(path.join(dataPath, 'exercices.csv'));
         // Note: CSV has moduleId, but our entity now uses leconId (hierarchy).
         // We assign exercises to the first lesson of the module for the POC.
         this.exercises = exercicesRaw.map(raw => {

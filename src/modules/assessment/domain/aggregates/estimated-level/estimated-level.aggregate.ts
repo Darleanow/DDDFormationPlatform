@@ -36,6 +36,9 @@ export class EstimatedLevel {
     const alpha = 0.3;
     
     // Log history (optional, for debugging/records)
+    if (interpretedScore < 0 || interpretedScore > 1) {
+      throw new Error('Interpreted score must be between 0 and 1');
+    }
     this.history.push(interpretedScore);
 
     const oldLevel = this.currentLevel.value;
